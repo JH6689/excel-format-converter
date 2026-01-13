@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel 格式轉換工具</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Microsoft JhengHei', 'Segoe UI', Arial, sans-serif;
+        }
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"],
+        input[type="number"],
+        input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+        .file-input-wrapper input[type="file"] {
+            cursor: pointer;
+        }
+        .row {
+            display: flex;
+            gap: 20px;
+        }
+        .row .form-group {
+            flex: 1;
+        }
+        .section-title {
+            background: #f5f5f5;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin: 25px 0 15px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .hint {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        #status.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        #status.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+        #status.loading {
+            background: #fff3cd;
+            color: #856404;
+            display: block;
+        }
+        .preview-table {
+            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .preview-table th, .preview-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .preview-table th {
+            background: #f5f5f5;
+        }
+        #previewSection {
+            display: none;
+            margin-top: 20px;
+        }
+        #downloadBtn {
+            margin-top: 15px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        .collapsible {
+            cursor: pointer;
+            user-select: none;
+        }
+        .collapsible::after {
+            content: ' [展開]';
+            font-size: 12px;
+            color: #667eea;
+        }
+        .collapsible.active::after {
+            content: ' [收起]';
+        }
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .collapsible-content.show {
+            max-height: 500px;
+        }
+        .shift-preview {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .shift-tag {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .shift-tag.early {
+            background: #d4edda;
+            color: #155724;
+        }
+        .shift-tag.middle {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .shift-tag.late {
+            background: #cce5ff;
+            color: #004085;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Excel 格式轉換工具</h1>
+
+        <form id="convertForm">
+            <div class="form-group">
+                <label for="excelFile">上傳 Excel 檔案</label>
+                <input type="file" id="excelFile" accept=".xlsx,.xls" required>
+                <div class="hint">請上傳包含「總控」表單的 Excel 檔案</div>
+            </div>
+
+            <div class="form-group">
+                <label for="yearMonth">轉換年月</label>
+                <input type="text" id="yearMonth" placeholder="例如: 202510" maxlength="6">
+                <div class="hint">預設為下個月</div>
+            </div>
+
+            <div class="section-title">班別切分設定</div>
+            <div class="row">
+                <div class="form-group">
+                    <label for="earlyCutoff">早班切分點</label>
+                    <input type="number" id="earlyCutoff" value="1050" min="0" max="2359">
+                    <div class="hint">此時間(含)以前為早班</div>
+                </div>
+                <div class="form-group">
+                    <label for="lateCutoff">晚班切分點</label>
+                    <input type="number" id="lateCutoff" value="1150" min="0" max="2359">
+                    <div class="hint">此時間(含)以後為晚班</div>
+                </div>
+            </div>
+            <div class="shift-preview">
+                <span class="shift-tag early">早班: ≤ <span id="earlyPreview">1050</span></span>
+                <span class="shift-tag middle">中班: <span id="middlePreview">1051-1149</span></span>
+                <span class="shift-tag late">晚班: ≥ <span id="latePreview">1150</span></span>
+            </div>
+
+            <div class="section-title collapsible" onclick="toggleSection(this)">
+                進階設定 - Google Sheets 對照表網址
+            </div>
+            <div class="collapsible-content">
+                <div class="form-group">
+                    <label for="employeeSheetUrl">員工工號對照表</label>
+                    <input type="text" id="employeeSheetUrl"
+                           value="https://docs.google.com/spreadsheets/d/1ZKRX1M1GZDSdgDe5i5JSveuEaYj3ZynaYJqvrzVNwvA/edit?gid=1729770798#gid=1729770798">
+                    <div class="hint">姓名對照工號的 Google Sheets</div>
+                </div>
+                <div class="form-group">
+                    <label for="taskCodeSheetUrl">任務代碼對照表</label>
+                    <input type="text" id="taskCodeSheetUrl"
+                           value="https://docs.google.com/spreadsheets/d/1ZKRX1M1GZDSdgDe5i5JSveuEaYj3ZynaYJqvrzVNwvA/edit?gid=0#gid=0">
+                    <div class="hint">任務代碼對照表（需包含「總控」相關代碼）</div>
+                </div>
+            </div>
+
+            <button type="submit" id="submitBtn">開始轉換</button>
+        </form>
+
+        <div id="status"></div>
+
+        <div id="previewSection">
+            <h3>轉換結果預覽（前20筆）</h3>
+            <table class="preview-table" id="previewTable">
+                <thead>
+                    <tr>
+                        <th>日期</th>
+                        <th>工號</th>
+                        <th>任務代碼</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <button type="button" id="downloadBtn" onclick="downloadResult()">下載轉換結果</button>
+        </div>
+    </div>
+
+    <script>
+        // 計算下個月的年月
+        function getNextMonth() {
+            const now = new Date();
+            let year = now.getFullYear();
+            let month = now.getMonth() + 2; // +1 for next month, +1 because months are 0-indexed
+            if (month > 12) {
+                month = 1;
+                year++;
+            }
+            return year.toString() + month.toString().padStart(2, '0');
+        }
+
+        // 設定預設年月
+        document.getElementById('yearMonth').value = getNextMonth();
+
+        // 更新班別預覽
+        function updateShiftPreview() {
+            const early = parseInt(document.getElementById('earlyCutoff').value) || 1050;
+            const late = parseInt(document.getElementById('lateCutoff').value) || 1150;
+
+            document.getElementById('earlyPreview').textContent = early;
+            document.getElementById('middlePreview').textContent = (early + 1) + '-' + (late - 1);
+            document.getElementById('latePreview').textContent = late;
+        }
+
+        // 監聽切分點變更
+        document.getElementById('earlyCutoff').addEventListener('input', updateShiftPreview);
+        document.getElementById('lateCutoff').addEventListener('input', updateShiftPreview);
+
+        // 展開/收起進階設定
+        function toggleSection(element) {
+            element.classList.toggle('active');
+            const content = element.nextElementSibling;
+            content.classList.toggle('show');
+        }
+
+        let convertedData = null;
+
+        // 表單提交
+        document.getElementById('convertForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const fileInput = document.getElementById('excelFile');
+            const yearMonth = document.getElementById('yearMonth').value || getNextMonth();
+            const earlyCutoff = document.getElementById('earlyCutoff').value || '1050';
+            const lateCutoff = document.getElementById('lateCutoff').value || '1150';
+            const employeeSheetUrl = document.getElementById('employeeSheetUrl').value;
+            const taskCodeSheetUrl = document.getElementById('taskCodeSheetUrl').value;
+
+            if (!fileInput.files[0]) {
+                showStatus('請選擇檔案', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('yearMonth', yearMonth);
+            formData.append('earlyCutoff', earlyCutoff);
+            formData.append('lateCutoff', lateCutoff);
+            formData.append('employeeSheetUrl', employeeSheetUrl);
+            formData.append('taskCodeSheetUrl', taskCodeSheetUrl);
+
+            showStatus('轉換中，請稍候...', 'loading');
+            document.getElementById('submitBtn').disabled = true;
+
+            try {
+                const response = await fetch('/api/convert', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    showStatus('伺服器錯誤: ' + response.status, 'error');
+                    return;
+                }
+
+                const text = await response.text();
+                if (!text) {
+                    showStatus('伺服器回應為空', 'error');
+                    return;
+                }
+
+                let result;
+                try {
+                    result = JSON.parse(text);
+                } catch (parseError) {
+                    showStatus('JSON 解析錯誤: ' + text.substring(0, 100), 'error');
+                    return;
+                }
+
+                if (result.success) {
+                    convertedData = result.data;
+                    showStatus(`轉換成功！共 ${result.data.length} 筆資料`, 'success');
+                    showPreview(result.data);
+                } else {
+                    showStatus('轉換失敗: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showStatus('發生錯誤: ' + error.message, 'error');
+            } finally {
+                document.getElementById('submitBtn').disabled = false;
+            }
+        });
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = type;
+        }
+
+        function showPreview(data) {
+            const tbody = document.querySelector('#previewTable tbody');
+            tbody.innerHTML = '';
+
+            const previewData = data.slice(0, 20);
+            previewData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${row.date}</td>
+                    <td>${row.employeeId}</td>
+                    <td>${row.taskCode}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('previewSection').style.display = 'block';
+        }
+
+        async function downloadResult() {
+            if (!convertedData) {
+                alert('沒有可下載的資料');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ data: convertedData })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = '轉換結果.xlsx';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                } else {
+                    alert('下載失敗');
+                }
+            } catch (error) {
+                alert('下載失敗: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
