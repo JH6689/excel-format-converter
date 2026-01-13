@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Excel 格式轉換工具</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -50,15 +51,6 @@
         input:focus {
             outline: none;
             border-color: #667eea;
-        }
-        .file-input-wrapper {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-            width: 100%;
-        }
-        .file-input-wrapper input[type="file"] {
-            cursor: pointer;
         }
         .row {
             display: flex;
@@ -235,13 +227,13 @@
                     <label for="employeeSheetUrl">員工工號對照表</label>
                     <input type="text" id="employeeSheetUrl"
                            value="https://docs.google.com/spreadsheets/d/1ZKRX1M1GZDSdgDe5i5JSveuEaYj3ZynaYJqvrzVNwvA/edit?gid=1729770798#gid=1729770798">
-                    <div class="hint">姓名對照工號的 Google Sheets</div>
+                    <div class="hint">姓名對照工號的 Google Sheets（需設為公開）</div>
                 </div>
                 <div class="form-group">
                     <label for="taskCodeSheetUrl">任務代碼對照表</label>
                     <input type="text" id="taskCodeSheetUrl"
                            value="https://docs.google.com/spreadsheets/d/1ZKRX1M1GZDSdgDe5i5JSveuEaYj3ZynaYJqvrzVNwvA/edit?gid=0#gid=0">
-                    <div class="hint">任務代碼對照表（需包含「總控」相關代碼）</div>
+                    <div class="hint">任務代碼對照表（需包含「總控」相關代碼，需設為公開）</div>
                 </div>
             </div>
 
@@ -271,7 +263,7 @@
         function getNextMonth() {
             const now = new Date();
             let year = now.getFullYear();
-            let month = now.getMonth() + 2; // +1 for next month, +1 because months are 0-indexed
+            let month = now.getMonth() + 2;
             if (month > 12) {
                 month = 1;
                 year++;
@@ -292,7 +284,6 @@
             document.getElementById('latePreview').textContent = late;
         }
 
-        // 監聽切分點變更
         document.getElementById('earlyCutoff').addEventListener('input', updateShiftPreview);
         document.getElementById('lateCutoff').addEventListener('input', updateShiftPreview);
 
@@ -303,6 +294,130 @@
             content.classList.toggle('show');
         }
 
+        // 從 Google Sheets URL 提取資訊並取得 CSV URL
+        function getGoogleSheetCsvUrl(url) {
+            if (!url) return null;
+            const spreadsheetIdMatch = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+            const gidMatch = url.match(/gid=(\d+)/);
+            if (!spreadsheetIdMatch) return null;
+            const gid = gidMatch ? gidMatch[1] : '0';
+            return `https://docs.google.com/spreadsheets/d/${spreadsheetIdMatch[1]}/export?format=csv&gid=${gid}`;
+        }
+
+        // 解析 CSV
+        function parseCsv(csvText) {
+            const lines = csvText.split('\n');
+            const result = [];
+            for (const line of lines) {
+                if (!line.trim()) continue;
+                const row = [];
+                let current = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        row.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                row.push(current.trim());
+                result.push(row);
+            }
+            return result;
+        }
+
+        // 載入 Google Sheets 資料
+        async function fetchGoogleSheet(url) {
+            const csvUrl = getGoogleSheetCsvUrl(url);
+            if (!csvUrl) return null;
+
+            try {
+                const response = await fetch(csvUrl);
+                if (!response.ok) throw new Error('無法載入');
+                const text = await response.text();
+                return parseCsv(text);
+            } catch (error) {
+                console.error('載入 Google Sheet 失敗:', error);
+                return null;
+            }
+        }
+
+        // 載入員工對照表
+        async function loadEmployeeMapping(url) {
+            const rows = await fetchGoogleSheet(url);
+            if (!rows) return {};
+
+            const mapping = {};
+            for (let i = 1; i < rows.length; i++) {
+                if (rows[i][0] && rows[i][1]) {
+                    mapping[rows[i][0].trim()] = rows[i][1].trim();
+                }
+            }
+            return mapping;
+        }
+
+        // 載入任務代碼對照表
+        async function loadTaskCodeMapping(url) {
+            const rows = await fetchGoogleSheet(url);
+            const result = { early: null, middle: null, late: null };
+
+            if (!rows) {
+                return { early: '總控-早', middle: '總控-中', late: '總控-晚' };
+            }
+
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                for (let j = 0; j < row.length; j++) {
+                    if (row[j] && row[j].includes('總控')) {
+                        const rowText = row.join(' ');
+                        const taskCode = row[1] || row[0];
+                        if (rowText.includes('早')) {
+                            result.early = taskCode;
+                        } else if (rowText.includes('中')) {
+                            result.middle = taskCode;
+                        } else if (rowText.includes('晚')) {
+                            result.late = taskCode;
+                        } else {
+                            if (!result.early) result.early = taskCode;
+                            else if (!result.middle) result.middle = taskCode;
+                            else if (!result.late) result.late = taskCode;
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+        // 檢查是否為有效的班別時間
+        function isValidShiftTime(value) {
+            if (value === null || value === undefined) return false;
+            const str = String(value).trim();
+            return /^\d{3,4}$/.test(str);
+        }
+
+        // 判斷班別
+        function getShiftType(timeValue, earlyCutoff, lateCutoff) {
+            const time = parseInt(timeValue, 10);
+            if (isNaN(time)) return null;
+            if (time <= earlyCutoff) return 'early';
+            if (time >= lateCutoff) return 'late';
+            return 'middle';
+        }
+
+        // 取得某月天數
+        function getDaysInMonth(year, month) {
+            return new Date(year, month, 0).getDate();
+        }
+
+        // 格式化日期
+        function formatDate(year, month, day) {
+            return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        }
+
         let convertedData = null;
 
         // 表單提交
@@ -311,8 +426,8 @@
 
             const fileInput = document.getElementById('excelFile');
             const yearMonth = document.getElementById('yearMonth').value || getNextMonth();
-            const earlyCutoff = document.getElementById('earlyCutoff').value || '1050';
-            const lateCutoff = document.getElementById('lateCutoff').value || '1150';
+            const earlyCutoff = parseInt(document.getElementById('earlyCutoff').value) || 1050;
+            const lateCutoff = parseInt(document.getElementById('lateCutoff').value) || 1150;
             const employeeSheetUrl = document.getElementById('employeeSheetUrl').value;
             const taskCodeSheetUrl = document.getElementById('taskCodeSheetUrl').value;
 
@@ -321,51 +436,91 @@
                 return;
             }
 
-            const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
-            formData.append('yearMonth', yearMonth);
-            formData.append('earlyCutoff', earlyCutoff);
-            formData.append('lateCutoff', lateCutoff);
-            formData.append('employeeSheetUrl', employeeSheetUrl);
-            formData.append('taskCodeSheetUrl', taskCodeSheetUrl);
-
             showStatus('轉換中，請稍候...', 'loading');
             document.getElementById('submitBtn').disabled = true;
 
             try {
-                const response = await fetch('/api/convert', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    showStatus('伺服器錯誤: ' + response.status, 'error');
-                    return;
-                }
-
-                const text = await response.text();
-                if (!text) {
-                    showStatus('伺服器回應為空', 'error');
-                    return;
-                }
-
-                let result;
-                try {
-                    result = JSON.parse(text);
-                } catch (parseError) {
-                    showStatus('JSON 解析錯誤: ' + text.substring(0, 100), 'error');
-                    return;
-                }
-
-                if (result.success) {
-                    convertedData = result.data;
-                    showStatus(`轉換成功！共 ${result.data.length} 筆資料`, 'success');
-                    showPreview(result.data);
+                // 解析年月
+                let year, month;
+                if (yearMonth.length === 6) {
+                    year = parseInt(yearMonth.substring(0, 4), 10);
+                    month = parseInt(yearMonth.substring(4, 6), 10);
                 } else {
-                    showStatus('轉換失敗: ' + result.error, 'error');
+                    const now = new Date();
+                    year = now.getFullYear();
+                    month = now.getMonth() + 2;
+                    if (month > 12) { month = 1; year++; }
                 }
+
+                const daysInMonth = getDaysInMonth(year, month);
+
+                // 讀取 Excel 檔案
+                const fileData = await fileInput.files[0].arrayBuffer();
+                const workbook = XLSX.read(fileData, { type: 'array' });
+
+                // 檢查是否有「總控」表單
+                if (!workbook.SheetNames.includes('總控')) {
+                    showStatus('找不到「總控」表單', 'error');
+                    return;
+                }
+
+                // 載入對照表
+                const [employeeMapping, taskCodes] = await Promise.all([
+                    loadEmployeeMapping(employeeSheetUrl),
+                    loadTaskCodeMapping(taskCodeSheetUrl)
+                ]);
+
+                console.log('Employee mapping:', employeeMapping);
+                console.log('Task codes:', taskCodes);
+
+                // 讀取「總控」表單
+                const sheet = workbook.Sheets['總控'];
+                const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+
+                const result = [];
+
+                // 從第二行開始（第一行是標題）
+                for (let rowIndex = 1; rowIndex < data.length; rowIndex++) {
+                    const row = data[rowIndex];
+                    const employeeName = String(row[0] || '').trim();
+                    if (!employeeName) continue;
+
+                    const employeeId = employeeMapping[employeeName] || employeeName;
+
+                    for (let colIndex = 1; colIndex <= daysInMonth && colIndex < row.length; colIndex++) {
+                        const cellValue = row[colIndex];
+                        const cellStr = String(cellValue).trim();
+
+                        if (isValidShiftTime(cellStr)) {
+                            const day = colIndex;
+                            const date = formatDate(year, month, day);
+                            const shiftType = getShiftType(cellStr, earlyCutoff, lateCutoff);
+
+                            let taskCode;
+                            if (shiftType === 'early') {
+                                taskCode = taskCodes.early || '總控-早';
+                            } else if (shiftType === 'middle') {
+                                taskCode = taskCodes.middle || '總控-中';
+                            } else {
+                                taskCode = taskCodes.late || '總控-晚';
+                            }
+
+                            result.push({
+                                date: date,
+                                employeeId: employeeId,
+                                taskCode: taskCode
+                            });
+                        }
+                    }
+                }
+
+                convertedData = result;
+                showStatus(`轉換成功！共 ${result.length} 筆資料`, 'success');
+                showPreview(result);
+
             } catch (error) {
                 showStatus('發生錯誤: ' + error.message, 'error');
+                console.error(error);
             } finally {
                 document.getElementById('submitBtn').disabled = false;
             }
@@ -395,37 +550,25 @@
             document.getElementById('previewSection').style.display = 'block';
         }
 
-        async function downloadResult() {
+        function downloadResult() {
             if (!convertedData) {
                 alert('沒有可下載的資料');
                 return;
             }
 
-            try {
-                const response = await fetch('/api/download', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ data: convertedData })
-                });
+            // 建立 Excel 工作表
+            const wsData = [
+                ['日期', '工號', '任務代碼'],
+                ...convertedData.map(row => [row.date, row.employeeId, row.taskCode])
+            ];
 
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = '轉換結果.xlsx';
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    a.remove();
-                } else {
-                    alert('下載失敗');
-                }
-            } catch (error) {
-                alert('下載失敗: ' + error.message);
-            }
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            ws['!cols'] = [{ wch: 12 }, { wch: 15 }, { wch: 20 }];
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '轉換結果');
+
+            XLSX.writeFile(wb, '轉換結果.xlsx');
         }
     </script>
 </body>
