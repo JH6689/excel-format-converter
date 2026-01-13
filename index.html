@@ -373,12 +373,12 @@
             };
 
             if (!rows) {
-                // 預設值
+                // 無法載入對照表時，全部為 null（不轉換任何內容）
                 return {
-                    '總控': { early: '總控-早', middle: '總控-中', late: '總控-晚' },
-                    '一線': { early: '一線-早', middle: '一線-中', late: '一線-晚' },
-                    '出納': { early: '出納-早', middle: '出納-中', late: '出納-晚' },
-                    '外帶': { early: '外帶-早', middle: '外帶-中', late: '外帶-晚' }
+                    '總控': { early: null, middle: null, late: null },
+                    '一線': { early: null, middle: null, late: null },
+                    '出納': { early: null, middle: null, late: null },
+                    '外帶': { early: null, middle: null, late: null }
                 };
             }
 
@@ -415,13 +415,13 @@
                 }
             }
 
-            // 轉換為結果格式
+            // 轉換為結果格式（找不到代碼則為 null，之後會略過）
             const result = {};
             for (const [sheetName, config] of Object.entries(sheetTypes)) {
                 result[sheetName] = {
-                    early: config.early || `${sheetName}-早`,
-                    middle: config.middle || `${sheetName}-中`,
-                    late: config.late || `${sheetName}-晚`
+                    early: config.early || null,
+                    middle: config.middle || null,
+                    late: config.late || null
                 };
             }
 
@@ -549,11 +549,14 @@
                                     taskCode = taskCodes.late;
                                 }
 
-                                result.push({
-                                    date: date,
-                                    employeeId: employeeId,
-                                    taskCode: taskCode
-                                });
+                                // 如果找不到對應代碼，略過不轉換
+                                if (taskCode) {
+                                    result.push({
+                                        date: date,
+                                        employeeId: employeeId,
+                                        taskCode: taskCode
+                                    });
+                                }
                             }
                         }
                     }
