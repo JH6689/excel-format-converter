@@ -191,7 +191,7 @@
             <div class="form-group">
                 <label for="excelFile">上傳 Excel 檔案</label>
                 <input type="file" id="excelFile" accept=".xlsx,.xls" required>
-                <div class="hint">請上傳包含「總控」表單的 Excel 檔案</div>
+                <div class="hint">支援表單：總控、一線、出納、外帶</div>
             </div>
 
             <div class="form-group">
@@ -360,35 +360,72 @@
             return mapping;
         }
 
-        // 載入任務代碼對照表
-        async function loadTaskCodeMapping(url) {
+        // 載入任務代碼對照表（支援多個表單類型）
+        async function loadAllTaskCodeMappings(url) {
             const rows = await fetchGoogleSheet(url);
-            const result = { early: null, middle: null, late: null };
+
+            // 定義要處理的表單類型及其在雲端對照表的搜尋關鍵字
+            const sheetTypes = {
+                '總控': { searchKey: '總控', early: null, middle: null, late: null },
+                '一線': { searchKey: '一線', early: null, middle: null, late: null },
+                '出納': { searchKey: '出納', early: null, middle: null, late: null },
+                '外帶': { searchKey: '外', early: null, middle: null, late: null }  // 外帶對應「外早」「外中」「外晚」
+            };
 
             if (!rows) {
-                return { early: '總控-早', middle: '總控-中', late: '總控-晚' };
+                // 預設值
+                return {
+                    '總控': { early: '總控-早', middle: '總控-中', late: '總控-晚' },
+                    '一線': { early: '一線-早', middle: '一線-中', late: '一線-晚' },
+                    '出納': { early: '出納-早', middle: '出納-中', late: '出納-晚' },
+                    '外帶': { early: '外帶-早', middle: '外帶-中', late: '外帶-晚' }
+                };
             }
 
             for (let i = 0; i < rows.length; i++) {
                 const row = rows[i];
-                for (let j = 0; j < row.length; j++) {
-                    if (row[j] && row[j].includes('總控')) {
-                        const rowText = row.join(' ');
-                        const taskCode = row[1] || row[0];
-                        if (rowText.includes('早')) {
-                            result.early = taskCode;
-                        } else if (rowText.includes('中')) {
-                            result.middle = taskCode;
-                        } else if (rowText.includes('晚')) {
-                            result.late = taskCode;
-                        } else {
-                            if (!result.early) result.early = taskCode;
-                            else if (!result.middle) result.middle = taskCode;
-                            else if (!result.late) result.late = taskCode;
+                const firstCol = (row[0] || '').trim();
+                const taskCode = (row[1] || row[0] || '').trim();
+
+                // 檢查每種表單類型
+                for (const [sheetName, config] of Object.entries(sheetTypes)) {
+                    const searchKey = config.searchKey;
+
+                    // 特殊處理「外帶」：搜尋「外早」「外中」「外晚」但不包含其他含「外」的詞
+                    if (sheetName === '外帶') {
+                        if (firstCol.includes('外早') || (firstCol.includes('外') && firstCol.includes('早') && !firstCol.includes('總控') && !firstCol.includes('一線') && !firstCol.includes('出納'))) {
+                            config.early = taskCode;
+                        } else if (firstCol.includes('外中') || (firstCol.includes('外') && firstCol.includes('中') && !firstCol.includes('總控') && !firstCol.includes('一線') && !firstCol.includes('出納'))) {
+                            config.middle = taskCode;
+                        } else if (firstCol.includes('外晚') || (firstCol.includes('外') && firstCol.includes('晚') && !firstCol.includes('總控') && !firstCol.includes('一線') && !firstCol.includes('出納'))) {
+                            config.late = taskCode;
+                        }
+                    } else {
+                        // 其他表單類型：搜尋「XX早」「XX中」「XX晚」
+                        if (firstCol.includes(searchKey)) {
+                            if (firstCol.includes('早')) {
+                                config.early = taskCode;
+                            } else if (firstCol.includes('中')) {
+                                config.middle = taskCode;
+                            } else if (firstCol.includes('晚')) {
+                                config.late = taskCode;
+                            }
                         }
                     }
                 }
             }
+
+            // 轉換為結果格式
+            const result = {};
+            for (const [sheetName, config] of Object.entries(sheetTypes)) {
+                result[sheetName] = {
+                    early: config.early || `${sheetName}-早`,
+                    middle: config.middle || `${sheetName}-中`,
+                    late: config.late || `${sheetName}-晚`
+                };
+            }
+
+            console.log('All task code mappings:', result);
             return result;
         }
 
@@ -458,64 +495,72 @@
                 const fileData = await fileInput.files[0].arrayBuffer();
                 const workbook = XLSX.read(fileData, { type: 'array' });
 
-                // 檢查是否有「總控」表單
-                if (!workbook.SheetNames.includes('總控')) {
-                    showStatus('找不到「總控」表單', 'error');
+                // 定義要處理的表單
+                const sheetsToProcess = ['總控', '一線', '出納', '外帶'];
+                const foundSheets = sheetsToProcess.filter(name => workbook.SheetNames.includes(name));
+
+                if (foundSheets.length === 0) {
+                    showStatus('找不到可處理的表單（總控、一線、出納、外帶）', 'error');
                     return;
                 }
 
                 // 載入對照表
-                const [employeeMapping, taskCodes] = await Promise.all([
+                const [employeeMapping, allTaskCodes] = await Promise.all([
                     loadEmployeeMapping(employeeSheetUrl),
-                    loadTaskCodeMapping(taskCodeSheetUrl)
+                    loadAllTaskCodeMappings(taskCodeSheetUrl)
                 ]);
 
                 console.log('Employee mapping:', employeeMapping);
-                console.log('Task codes:', taskCodes);
-
-                // 讀取「總控」表單
-                const sheet = workbook.Sheets['總控'];
-                const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+                console.log('All task codes:', allTaskCodes);
 
                 const result = [];
 
-                // 從第二行開始（第一行是標題）
-                for (let rowIndex = 1; rowIndex < data.length; rowIndex++) {
-                    const row = data[rowIndex];
-                    const employeeName = String(row[0] || '').trim();
-                    if (!employeeName) continue;
+                // 處理每個表單
+                for (const sheetName of foundSheets) {
+                    const sheet = workbook.Sheets[sheetName];
+                    const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+                    const taskCodes = allTaskCodes[sheetName];
 
-                    const employeeId = employeeMapping[employeeName] || employeeName;
+                    console.log(`Processing sheet: ${sheetName}, taskCodes:`, taskCodes);
 
-                    for (let colIndex = 1; colIndex <= daysInMonth && colIndex < row.length; colIndex++) {
-                        const cellValue = row[colIndex];
-                        const cellStr = String(cellValue).trim();
+                    // 從第二行開始（第一行是標題）
+                    for (let rowIndex = 1; rowIndex < data.length; rowIndex++) {
+                        const row = data[rowIndex];
+                        const employeeName = String(row[0] || '').trim();
+                        if (!employeeName) continue;
 
-                        if (isValidShiftTime(cellStr)) {
-                            const day = colIndex;
-                            const date = formatDate(year, month, day);
-                            const shiftType = getShiftType(cellStr, earlyCutoff, lateCutoff);
+                        const employeeId = employeeMapping[employeeName] || employeeName;
 
-                            let taskCode;
-                            if (shiftType === 'early') {
-                                taskCode = taskCodes.early || '總控-早';
-                            } else if (shiftType === 'middle') {
-                                taskCode = taskCodes.middle || '總控-中';
-                            } else {
-                                taskCode = taskCodes.late || '總控-晚';
+                        for (let colIndex = 1; colIndex <= daysInMonth && colIndex < row.length; colIndex++) {
+                            const cellValue = row[colIndex];
+                            const cellStr = String(cellValue).trim();
+
+                            if (isValidShiftTime(cellStr)) {
+                                const day = colIndex;
+                                const date = formatDate(year, month, day);
+                                const shiftType = getShiftType(cellStr, earlyCutoff, lateCutoff);
+
+                                let taskCode;
+                                if (shiftType === 'early') {
+                                    taskCode = taskCodes.early;
+                                } else if (shiftType === 'middle') {
+                                    taskCode = taskCodes.middle;
+                                } else {
+                                    taskCode = taskCodes.late;
+                                }
+
+                                result.push({
+                                    date: date,
+                                    employeeId: employeeId,
+                                    taskCode: taskCode
+                                });
                             }
-
-                            result.push({
-                                date: date,
-                                employeeId: employeeId,
-                                taskCode: taskCode
-                            });
                         }
                     }
                 }
 
                 convertedData = result;
-                showStatus(`轉換成功！共 ${result.length} 筆資料`, 'success');
+                showStatus(`轉換成功！共 ${result.length} 筆資料（來自：${foundSheets.join('、')}）`, 'success');
                 showPreview(result);
 
             } catch (error) {
