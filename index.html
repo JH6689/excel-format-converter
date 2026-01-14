@@ -373,7 +373,8 @@
             };
 
             if (!rows) {
-                // 無法載入對照表時，全部為 null（不轉換任何內容）
+                // 無法載入對照表時，顯示錯誤（讓用戶知道需要設定正確的對照表）
+                console.error('無法載入任務代碼對照表');
                 return {
                     '總控': { early: null, middle: null, late: null },
                     '一線': { early: null, middle: null, late: null },
@@ -381,6 +382,8 @@
                     '外帶': { early: null, middle: null, late: null }
                 };
             }
+
+            console.log('Google Sheets 對照表內容:', rows);
 
             for (let i = 0; i < rows.length; i++) {
                 const row = rows[i];
@@ -563,7 +566,17 @@
                 }
 
                 convertedData = result;
-                showStatus(`轉換成功！共 ${result.length} 筆資料（來自：${foundSheets.join('、')}）`, 'success');
+
+                // 統計各表單轉換數量
+                const sheetStats = {};
+                foundSheets.forEach(s => sheetStats[s] = 0);
+                // 這裡無法精確統計每個表單，所以只顯示總數
+
+                if (result.length === 0) {
+                    showStatus(`沒有可轉換的資料。請確認：1) Google Sheets 對照表是否設為公開 2) 對照表中是否有對應的任務代碼`, 'error');
+                } else {
+                    showStatus(`轉換成功！共 ${result.length} 筆資料（來自：${foundSheets.join('、')}）`, 'success');
+                }
                 showPreview(result);
 
             } catch (error) {
