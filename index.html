@@ -181,6 +181,29 @@
             background: #cce5ff;
             color: #004085;
         }
+        .shift-config {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .shift-config-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .shift-config .row {
+            gap: 10px;
+        }
+        .shift-config input {
+            padding: 8px;
+            font-size: 13px;
+        }
+        .shift-config label {
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
     </style>
 </head>
 <body>
@@ -200,23 +223,83 @@
                 <div class="hint">預設為下個月</div>
             </div>
 
-            <div class="section-title">班別切分設定</div>
-            <div class="row">
-                <div class="form-group">
-                    <label for="earlyCutoff">早班切分點</label>
-                    <input type="number" id="earlyCutoff" value="1050" min="0" max="2359">
-                    <div class="hint">此時間(含)以前為早班</div>
-                </div>
-                <div class="form-group">
-                    <label for="lateCutoff">晚班切分點</label>
-                    <input type="number" id="lateCutoff" value="1150" min="0" max="2359">
-                    <div class="hint">此時間(含)以後為晚班</div>
+            <div class="section-title">各職務班別切分設定</div>
+            <div class="hint" style="margin-bottom: 15px;">留空表示不從此點切分。早班切點前(含)為早班，晚班切點後(含)為晚班，中下切點到晚班切點之間為中下班，其餘為中班。</div>
+
+            <!-- 總控 -->
+            <div class="shift-config">
+                <div class="shift-config-title">總控</div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>早班切點</label>
+                        <input type="number" id="cut_總控_early" value="1050" min="0" max="2359" placeholder="留空不切">
+                    </div>
+                    <div class="form-group">
+                        <label>中下切點</label>
+                        <input type="number" id="cut_總控_midLate" min="0" max="2359" placeholder="留空不切">
+                    </div>
+                    <div class="form-group">
+                        <label>晚班切點</label>
+                        <input type="number" id="cut_總控_late" value="1150" min="0" max="2359" placeholder="留空不切">
+                    </div>
                 </div>
             </div>
-            <div class="shift-preview">
-                <span class="shift-tag early">早班: ≤ <span id="earlyPreview">1050</span></span>
-                <span class="shift-tag middle">中班: <span id="middlePreview">1051-1149</span></span>
-                <span class="shift-tag late">晚班: ≥ <span id="latePreview">1150</span></span>
+
+            <!-- 一線 -->
+            <div class="shift-config">
+                <div class="shift-config-title">一線</div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>早班切點</label>
+                        <input type="number" id="cut_一線_early" value="1050" min="0" max="2359" placeholder="留空不切">
+                    </div>
+                    <div class="form-group">
+                        <label>中下切點</label>
+                        <input type="number" id="cut_一線_midLate" value="1150" min="0" max="2359" placeholder="留空不切">
+                    </div>
+                    <div class="form-group">
+                        <label>晚班切點</label>
+                        <input type="number" id="cut_一線_late" value="1200" min="0" max="2359" placeholder="留空不切">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 出納 -->
+            <div class="shift-config">
+                <div class="shift-config-title">出納</div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>早班切點</label>
+                        <input type="number" id="cut_出納_early" value="1050" min="0" max="2359" placeholder="留空不切">
+                    </div>
+                    <div class="form-group">
+                        <label>中下切點</label>
+                        <input type="number" id="cut_出納_midLate" value="1150" min="0" max="2359" placeholder="留空不切">
+                    </div>
+                    <div class="form-group">
+                        <label>晚班切點</label>
+                        <input type="number" id="cut_出納_late" value="1200" min="0" max="2359" placeholder="留空不切">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 外帶 -->
+            <div class="shift-config">
+                <div class="shift-config-title">外帶</div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>早班切點</label>
+                        <input type="number" id="cut_外帶_early" min="0" max="2359" placeholder="留空不切">
+                    </div>
+                    <div class="form-group">
+                        <label>中下切點</label>
+                        <input type="number" id="cut_外帶_midLate" min="0" max="2359" placeholder="留空不切">
+                    </div>
+                    <div class="form-group">
+                        <label>晚班切點</label>
+                        <input type="number" id="cut_外帶_late" value="1150" min="0" max="2359" placeholder="留空不切">
+                    </div>
+                </div>
             </div>
 
             <div class="section-title collapsible" onclick="toggleSection(this)">
@@ -274,18 +357,25 @@
         // 設定預設年月
         document.getElementById('yearMonth').value = getNextMonth();
 
-        // 更新班別預覽
-        function updateShiftPreview() {
-            const early = parseInt(document.getElementById('earlyCutoff').value) || 1050;
-            const late = parseInt(document.getElementById('lateCutoff').value) || 1150;
+        // 取得各職務的切分點設定
+        function getShiftCutoffs() {
+            const sheets = ['總控', '一線', '出納', '外帶'];
+            const cutoffs = {};
 
-            document.getElementById('earlyPreview').textContent = early;
-            document.getElementById('middlePreview').textContent = (early + 1) + '-' + (late - 1);
-            document.getElementById('latePreview').textContent = late;
+            for (const sheet of sheets) {
+                const earlyVal = document.getElementById(`cut_${sheet}_early`).value;
+                const midLateVal = document.getElementById(`cut_${sheet}_midLate`).value;
+                const lateVal = document.getElementById(`cut_${sheet}_late`).value;
+
+                cutoffs[sheet] = {
+                    early: earlyVal ? parseInt(earlyVal) : null,
+                    midLate: midLateVal ? parseInt(midLateVal) : null,
+                    late: lateVal ? parseInt(lateVal) : null
+                };
+            }
+
+            return cutoffs;
         }
-
-        document.getElementById('earlyCutoff').addEventListener('input', updateShiftPreview);
-        document.getElementById('lateCutoff').addEventListener('input', updateShiftPreview);
 
         // 展開/收起進階設定
         function toggleSection(element) {
@@ -360,26 +450,26 @@
             return mapping;
         }
 
-        // 載入任務代碼對照表（支援多個表單類型）
+        // 載入任務代碼對照表（支援多個表單類型，包含中下班）
         async function loadAllTaskCodeMappings(url) {
             const rows = await fetchGoogleSheet(url);
 
             // 定義要處理的表單類型及其在雲端對照表的搜尋關鍵字
+            // 現在支援四種班別：早、中、中下、晚
             const sheetTypes = {
-                '總控': { searchKey: '總控', early: null, middle: null, late: null },
-                '一線': { searchKey: '一線', early: null, middle: null, late: null },
-                '出納': { searchKey: '出納', early: null, middle: null, late: null },
-                '外帶': { searchKey: '外', early: null, middle: null, late: null }  // 外帶對應「外早」「外中」「外晚」
+                '總控': { searchKey: '總控', early: null, middle: null, midLate: null, late: null },
+                '一線': { searchKey: '一線', early: null, middle: null, midLate: null, late: null },
+                '出納': { searchKey: '出納', early: null, middle: null, midLate: null, late: null },
+                '外帶': { searchKey: '外', early: null, middle: null, midLate: null, late: null }
             };
 
             if (!rows) {
-                // 無法載入對照表時，顯示錯誤（讓用戶知道需要設定正確的對照表）
                 console.error('無法載入任務代碼對照表');
                 return {
-                    '總控': { early: null, middle: null, late: null },
-                    '一線': { early: null, middle: null, late: null },
-                    '出納': { early: null, middle: null, late: null },
-                    '外帶': { early: null, middle: null, late: null }
+                    '總控': { early: null, middle: null, midLate: null, late: null },
+                    '一線': { early: null, middle: null, midLate: null, late: null },
+                    '出納': { early: null, middle: null, midLate: null, late: null },
+                    '外帶': { early: null, middle: null, midLate: null, late: null }
                 };
             }
 
@@ -394,20 +484,27 @@
                 for (const [sheetName, config] of Object.entries(sheetTypes)) {
                     const searchKey = config.searchKey;
 
-                    // 特殊處理「外帶」：搜尋「外早」「外中」「外晚」但不包含其他含「外」的詞
+                    // 特殊處理「外帶」：搜尋「外早」「外中」「外中下」「外下」「外晚」
                     if (sheetName === '外帶') {
-                        if (firstCol.includes('外早') || (firstCol.includes('外') && firstCol.includes('早') && !firstCol.includes('總控') && !firstCol.includes('一線') && !firstCol.includes('出納'))) {
+                        const isExternalOnly = firstCol.includes('外') && !firstCol.includes('總控') && !firstCol.includes('一線') && !firstCol.includes('出納');
+                        if (!isExternalOnly) continue;
+
+                        if (firstCol.includes('外早') || (firstCol.includes('早'))) {
                             config.early = taskCode;
-                        } else if (firstCol.includes('外中') || (firstCol.includes('外') && firstCol.includes('中') && !firstCol.includes('總控') && !firstCol.includes('一線') && !firstCol.includes('出納'))) {
+                        } else if (firstCol.includes('外中下') || firstCol.includes('外下') || (firstCol.includes('中下') || firstCol.includes('下'))) {
+                            config.midLate = taskCode;
+                        } else if (firstCol.includes('外中') || firstCol.includes('中')) {
                             config.middle = taskCode;
-                        } else if (firstCol.includes('外晚') || (firstCol.includes('外') && firstCol.includes('晚') && !firstCol.includes('總控') && !firstCol.includes('一線') && !firstCol.includes('出納'))) {
+                        } else if (firstCol.includes('外晚') || firstCol.includes('晚')) {
                             config.late = taskCode;
                         }
                     } else {
-                        // 其他表單類型：搜尋「XX早」「XX中」「XX晚」
+                        // 其他表單類型：搜尋「XX早」「XX中」「XX中下」「XX下」「XX晚」
                         if (firstCol.includes(searchKey)) {
                             if (firstCol.includes('早')) {
                                 config.early = taskCode;
+                            } else if (firstCol.includes('中下') || (firstCol.includes('下') && !firstCol.includes('晚'))) {
+                                config.midLate = taskCode;
                             } else if (firstCol.includes('中')) {
                                 config.middle = taskCode;
                             } else if (firstCol.includes('晚')) {
@@ -424,6 +521,7 @@
                 result[sheetName] = {
                     early: config.early || null,
                     middle: config.middle || null,
+                    midLate: config.midLate || null,
                     late: config.late || null
                 };
             }
@@ -439,12 +537,42 @@
             return /^\d{3,4}$/.test(str);
         }
 
-        // 判斷班別
-        function getShiftType(timeValue, earlyCutoff, lateCutoff) {
+        // 判斷班別（支援各職務獨立切分點）
+        // cutoffs: { early: number|null, midLate: number|null, late: number|null }
+        // 返回: 'early', 'middle', 'midLate', 'late'
+        function getShiftType(timeValue, cutoffs) {
             const time = parseInt(timeValue, 10);
             if (isNaN(time)) return null;
-            if (time <= earlyCutoff) return 'early';
-            if (time >= lateCutoff) return 'late';
+
+            const { early, midLate, late } = cutoffs;
+
+            // 情況1: 只有晚班切點（如外帶預設）
+            // 晚班切點後(含)為晚班，其他為早班
+            if (early === null && midLate === null && late !== null) {
+                return time >= late ? 'late' : 'early';
+            }
+
+            // 情況2: 只有早班和晚班切點（如總控預設）
+            // 早班切點前(含)為早班，晚班切點後(含)為晚班，其他為中班
+            if (early !== null && midLate === null && late !== null) {
+                if (time <= early) return 'early';
+                if (time >= late) return 'late';
+                return 'middle';
+            }
+
+            // 情況3: 有早班、中下、晚班切點（如一線、出納預設）
+            // 早班切點前(含)為早班
+            // 中下切點到晚班切點之間(含中下，不含晚班)為中下班
+            // 晚班切點後(含)為晚班
+            // 其餘為中班
+            if (early !== null && midLate !== null && late !== null) {
+                if (time <= early) return 'early';
+                if (time >= late) return 'late';
+                if (time >= midLate && time < late) return 'midLate';
+                return 'middle';
+            }
+
+            // 其他情況：預設返回中班
             return 'middle';
         }
 
@@ -466,10 +594,12 @@
 
             const fileInput = document.getElementById('excelFile');
             const yearMonth = document.getElementById('yearMonth').value || getNextMonth();
-            const earlyCutoff = parseInt(document.getElementById('earlyCutoff').value) || 1050;
-            const lateCutoff = parseInt(document.getElementById('lateCutoff').value) || 1150;
             const employeeSheetUrl = document.getElementById('employeeSheetUrl').value;
             const taskCodeSheetUrl = document.getElementById('taskCodeSheetUrl').value;
+
+            // 取得各職務的切分點設定
+            const shiftCutoffs = getShiftCutoffs();
+            console.log('Shift cutoffs:', shiftCutoffs);
 
             if (!fileInput.files[0]) {
                 showStatus('請選擇檔案', 'error');
@@ -523,8 +653,9 @@
                     const sheet = workbook.Sheets[sheetName];
                     const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
                     const taskCodes = allTaskCodes[sheetName];
+                    const cutoffs = shiftCutoffs[sheetName];
 
-                    console.log(`Processing sheet: ${sheetName}, taskCodes:`, taskCodes);
+                    console.log(`Processing sheet: ${sheetName}, taskCodes:`, taskCodes, 'cutoffs:', cutoffs);
 
                     // 從第二行開始（第一行是標題）
                     for (let rowIndex = 1; rowIndex < data.length; rowIndex++) {
@@ -541,14 +672,16 @@
                             if (isValidShiftTime(cellStr)) {
                                 const day = colIndex;
                                 const date = formatDate(year, month, day);
-                                const shiftType = getShiftType(cellStr, earlyCutoff, lateCutoff);
+                                const shiftType = getShiftType(cellStr, cutoffs);
 
                                 let taskCode;
                                 if (shiftType === 'early') {
                                     taskCode = taskCodes.early;
                                 } else if (shiftType === 'middle') {
                                     taskCode = taskCodes.middle;
-                                } else {
+                                } else if (shiftType === 'midLate') {
+                                    taskCode = taskCodes.midLate;
+                                } else if (shiftType === 'late') {
                                     taskCode = taskCodes.late;
                                 }
 
@@ -566,11 +699,6 @@
                 }
 
                 convertedData = result;
-
-                // 統計各表單轉換數量
-                const sheetStats = {};
-                foundSheets.forEach(s => sheetStats[s] = 0);
-                // 這裡無法精確統計每個表單，所以只顯示總數
 
                 if (result.length === 0) {
                     showStatus(`沒有可轉換的資料。請確認：1) Google Sheets 對照表是否設為公開 2) 對照表中是否有對應的任務代碼`, 'error');
