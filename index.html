@@ -544,6 +544,11 @@
             const time = parseInt(timeValue, 10);
             if (isNaN(time)) return null;
 
+            // 防護：如果 cutoffs 未定義，使用預設值
+            if (!cutoffs) {
+                cutoffs = { early: 1050, midLate: null, late: 1150 };
+            }
+
             const { early, midLate, late } = cutoffs;
 
             // 情況1: 只有晚班切點（如外帶預設）
@@ -652,10 +657,13 @@
                 for (const sheetName of foundSheets) {
                     const sheet = workbook.Sheets[sheetName];
                     const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
-                    const taskCodes = allTaskCodes[sheetName];
-                    const cutoffs = shiftCutoffs[sheetName];
+                    const taskCodes = allTaskCodes[sheetName] || { early: null, middle: null, midLate: null, late: null };
+                    const cutoffs = shiftCutoffs[sheetName] || { early: 1050, midLate: null, late: 1150 };
 
-                    console.log(`Processing sheet: ${sheetName}, taskCodes:`, taskCodes, 'cutoffs:', cutoffs);
+                    console.log(`Processing sheet: ${sheetName}`);
+                    console.log(`  taskCodes:`, taskCodes);
+                    console.log(`  cutoffs:`, cutoffs);
+                    console.log(`  data rows:`, data.length);
 
                     // 從第二行開始（第一行是標題）
                     for (let rowIndex = 1; rowIndex < data.length; rowIndex++) {
@@ -692,6 +700,8 @@
                                         employeeId: employeeId,
                                         taskCode: taskCode
                                     });
+                                } else {
+                                    console.log(`  跳過: ${employeeName} ${date} 時間=${cellStr} 班別=${shiftType} (無對應代碼)`);
                                 }
                             }
                         }
