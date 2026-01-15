@@ -214,7 +214,7 @@
             <div class="form-group">
                 <label for="excelFile">上傳 Excel 檔案</label>
                 <input type="file" id="excelFile" accept=".xlsx,.xls" required>
-                <div class="hint">支援表單：總控、一線、出納、外帶</div>
+                <div class="hint">支援表單：總控、一線、出納、外帶、任務分配</div>
             </div>
 
             <div class="form-group">
@@ -316,7 +316,7 @@
                     <label for="taskCodeSheetUrl">任務代碼對照表</label>
                     <input type="text" id="taskCodeSheetUrl"
                            value="https://docs.google.com/spreadsheets/d/1ZKRX1M1GZDSdgDe5i5JSveuEaYj3ZynaYJqvrzVNwvA/edit?gid=0#gid=0">
-                    <div class="hint">任務代碼對照表（需包含「總控」相關代碼，需設為公開）</div>
+                    <div class="hint">任務代碼對照表（班別代碼 + 任務分配代碼共用，需設為公開）</div>
                 </div>
             </div>
 
@@ -530,6 +530,41 @@
             return result;
         }
 
+        // 載入任務分配對照表（任務名稱 → 任務代碼）
+        // 使用與班別相同的對照表，排除班別相關項目
+        function loadTaskAssignMapping(rows) {
+            if (!rows) {
+                console.log('無法載入任務分配對照表');
+                return {};
+            }
+
+            const mapping = {};
+            // 第一欄是任務名稱，第二欄是代碼
+            // 排除班別相關的項目
+            const shiftPatterns = ['總控早', '總控中', '總控晚', '總控下',
+                                   '一線早', '一線中', '一線晚', '一線下',
+                                   '出納早', '出納中', '出納晚', '出納下',
+                                   '外早', '外中', '外晚', '外下'];
+
+            for (let i = 0; i < rows.length; i++) {
+                const taskName = (rows[i][0] || '').trim();
+                const taskCode = (rows[i][1] || '').trim();
+
+                // 跳過班別相關項目
+                const isShiftItem = shiftPatterns.some(pattern => taskName.includes(pattern));
+                if (isShiftItem) {
+                    continue;
+                }
+
+                if (taskName && taskCode) {
+                    mapping[taskName] = taskCode;
+                }
+            }
+
+            console.log('Task assign mapping loaded:', mapping);
+            return mapping;
+        }
+
         // 檢查是否為有效的班別時間
         function isValidShiftTime(value) {
             if (value === null || value === undefined) return false;
@@ -543,11 +578,6 @@
         function getShiftType(timeValue, cutoffs) {
             const time = parseInt(timeValue, 10);
             if (isNaN(time)) return null;
-
-            // 防護：如果 cutoffs 未定義，使用預設值
-            if (!cutoffs) {
-                cutoffs = { early: 1050, midLate: null, late: 1150 };
-            }
 
             const { early, midLate, late } = cutoffs;
 
@@ -633,23 +663,31 @@
                 const fileData = await fileInput.files[0].arrayBuffer();
                 const workbook = XLSX.read(fileData, { type: 'array' });
 
-                // 定義要處理的表單
+                // 定義要處理的表單（班別表單）
                 const sheetsToProcess = ['總控', '一線', '出納', '外帶'];
                 const foundSheets = sheetsToProcess.filter(name => workbook.SheetNames.includes(name));
 
-                if (foundSheets.length === 0) {
-                    showStatus('找不到可處理的表單（總控、一線、出納、外帶）', 'error');
+                // 檢查是否有任務分配表單
+                const hasTaskAssignSheet = workbook.SheetNames.includes('任務分配');
+
+                if (foundSheets.length === 0 && !hasTaskAssignSheet) {
+                    showStatus('找不到可處理的表單（總控、一線、出納、外帶、任務分配）', 'error');
                     return;
                 }
 
                 // 載入對照表
-                const [employeeMapping, allTaskCodes] = await Promise.all([
+                const [employeeMapping, taskCodeRows] = await Promise.all([
                     loadEmployeeMapping(employeeSheetUrl),
-                    loadAllTaskCodeMappings(taskCodeSheetUrl)
+                    fetchGoogleSheet(taskCodeSheetUrl)
                 ]);
+
+                // 從對照表解析班別代碼和任務分配代碼
+                const allTaskCodes = await loadAllTaskCodeMappings(taskCodeSheetUrl);
+                const taskAssignMapping = loadTaskAssignMapping(taskCodeRows);
 
                 console.log('Employee mapping:', employeeMapping);
                 console.log('All task codes:', allTaskCodes);
+                console.log('Task assign mapping:', taskAssignMapping);
 
                 const result = [];
 
@@ -657,13 +695,10 @@
                 for (const sheetName of foundSheets) {
                     const sheet = workbook.Sheets[sheetName];
                     const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
-                    const taskCodes = allTaskCodes[sheetName] || { early: null, middle: null, midLate: null, late: null };
-                    const cutoffs = shiftCutoffs[sheetName] || { early: 1050, midLate: null, late: 1150 };
+                    const taskCodes = allTaskCodes[sheetName];
+                    const cutoffs = shiftCutoffs[sheetName];
 
-                    console.log(`Processing sheet: ${sheetName}`);
-                    console.log(`  taskCodes:`, taskCodes);
-                    console.log(`  cutoffs:`, cutoffs);
-                    console.log(`  data rows:`, data.length);
+                    console.log(`Processing sheet: ${sheetName}, taskCodes:`, taskCodes, 'cutoffs:', cutoffs);
 
                     // 從第二行開始（第一行是標題）
                     for (let rowIndex = 1; rowIndex < data.length; rowIndex++) {
@@ -700,12 +735,65 @@
                                         employeeId: employeeId,
                                         taskCode: taskCode
                                     });
-                                } else {
-                                    console.log(`  跳過: ${employeeName} ${date} 時間=${cellStr} 班別=${shiftType} (無對應代碼)`);
                                 }
                             }
                         }
                     }
+                }
+
+                // 處理任務分配表單
+                let processedTaskAssign = false;
+                if (hasTaskAssignSheet && taskAssignMapping && Object.keys(taskAssignMapping).length > 0) {
+                    const sheet = workbook.Sheets['任務分配'];
+                    const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+
+                    console.log('Processing sheet: 任務分配');
+                    console.log('  data rows:', data.length);
+
+                    // 任務分配表單結構：
+                    // 第一欄：任務名稱
+                    // 第二欄以後：日期（1號到最後一號）
+                    // 儲存格內容：員工姓名
+
+                    for (let rowIndex = 1; rowIndex < data.length; rowIndex++) {
+                        const row = data[rowIndex];
+                        const taskName = String(row[0] || '').trim();
+                        if (!taskName) continue;
+
+                        // 查找任務代碼
+                        const taskCode = taskAssignMapping[taskName];
+                        if (!taskCode) {
+                            console.log(`  跳過任務: ${taskName} (無對應代碼)`);
+                            continue;
+                        }
+
+                        // 處理每一天
+                        for (let colIndex = 1; colIndex <= daysInMonth && colIndex < row.length; colIndex++) {
+                            const cellValue = row[colIndex];
+                            const employeeName = String(cellValue).trim();
+
+                            if (employeeName) {
+                                const day = colIndex;
+                                const date = formatDate(year, month, day);
+                                const employeeId = employeeMapping[employeeName] || employeeName;
+
+                                result.push({
+                                    date: date,
+                                    employeeId: employeeId,
+                                    taskCode: taskCode
+                                });
+                                processedTaskAssign = true;
+                            }
+                        }
+                    }
+                } else if (hasTaskAssignSheet) {
+                    console.log('任務分配表單存在，但對照表中無對應的任務代碼，跳過處理');
+                }
+
+                // 統計處理的表單
+                const processedSheets = [...foundSheets];
+                if (processedTaskAssign) {
+                    processedSheets.push('任務分配');
                 }
 
                 convertedData = result;
@@ -713,7 +801,7 @@
                 if (result.length === 0) {
                     showStatus(`沒有可轉換的資料。請確認：1) Google Sheets 對照表是否設為公開 2) 對照表中是否有對應的任務代碼`, 'error');
                 } else {
-                    showStatus(`轉換成功！共 ${result.length} 筆資料（來自：${foundSheets.join('、')}）`, 'success');
+                    showStatus(`轉換成功！共 ${result.length} 筆資料（來自：${processedSheets.join('、')}）`, 'success');
                 }
                 showPreview(result);
 
