@@ -12,93 +12,130 @@
         }
         body {
             margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px;
+            background: linear-gradient(135deg, #0d9488 0%, #0891b2 100%);
             min-height: 100vh;
         }
         .container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
             background: white;
-            border-radius: 16px;
-            padding: 30px;
+            border-radius: 12px;
+            padding: 15px 20px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
         }
         h1 {
             text-align: center;
             color: #333;
-            margin-bottom: 30px;
+            margin: 5px 0 15px 0;
+            font-size: 22px;
         }
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
         label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
             font-weight: bold;
             color: #555;
+            font-size: 13px;
         }
         input[type="text"],
         input[type="number"],
         input[type="file"] {
             width: 100%;
-            padding: 12px;
+            padding: 8px;
             border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
+            border-radius: 6px;
+            font-size: 13px;
             transition: border-color 0.3s;
         }
         input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #0d9488;
         }
         .row {
             display: flex;
-            gap: 20px;
+            gap: 15px;
         }
         .row .form-group {
             flex: 1;
         }
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .left-panel, .right-panel {
+            min-width: 0;
+        }
         .section-title {
             background: #f5f5f5;
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin: 25px 0 15px 0;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin: 10px 0 8px 0;
             color: #666;
-            font-size: 14px;
+            font-size: 13px;
+            font-weight: bold;
         }
-        button {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .btn-primary {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #0d9488 0%, #0891b2 100%);
             color: white;
             border: none;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
         }
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(13, 148, 136, 0.4);
         }
-        button:disabled {
+        .btn-primary:disabled {
             background: #ccc;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
         }
+        .btn-download {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: none;
+        }
+        .btn-download:hover {
+            transform: translateY(-1px);
+        }
+        .btn-download.show {
+            display: inline-block;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .action-buttons button {
+            flex: 1;
+        }
         .hint {
-            font-size: 12px;
+            font-size: 11px;
             color: #888;
-            margin-top: 5px;
+            margin-top: 3px;
         }
         #status {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 8px;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 6px;
             display: none;
+            font-size: 13px;
         }
         #status.success {
             background: #d4edda;
@@ -116,93 +153,143 @@
             display: block;
         }
         .preview-table {
-            margin-top: 20px;
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: 12px;
+            margin-top: 8px;
         }
         .preview-table th, .preview-table td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 5px 8px;
             text-align: left;
         }
         .preview-table th {
             background: #f5f5f5;
         }
+        .preview-wrapper {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+        .preview-wrapper .preview-table {
+            margin-top: 0;
+        }
         #previewSection {
             display: none;
-            margin-top: 20px;
-        }
-        #downloadBtn {
-            margin-top: 15px;
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        }
-        .collapsible {
-            cursor: pointer;
-            user-select: none;
-        }
-        .collapsible::after {
-            content: ' [展開]';
-            font-size: 12px;
-            color: #667eea;
-        }
-        .collapsible.active::after {
-            content: ' [收起]';
-        }
-        .collapsible-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-        }
-        .collapsible-content.show {
-            max-height: 500px;
-        }
-        .shift-preview {
-            display: flex;
-            gap: 10px;
             margin-top: 10px;
-            flex-wrap: wrap;
         }
-        .shift-tag {
-            padding: 6px 12px;
-            border-radius: 20px;
+        #previewSection h3 {
             font-size: 13px;
-            font-weight: bold;
+            margin: 0 0 8px 0;
+            color: #666;
         }
-        .shift-tag.early {
+        /* 門市 Tab 按鈕 */
+        .store-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .store-tab {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid #0d9488;
+            border-radius: 8px;
+            background: white;
+            color: #0d9488;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .store-tab:hover {
+            background: #f0fdfa;
+        }
+        .store-tab.active {
+            background: linear-gradient(135deg, #0d9488 0%, #0891b2 100%);
+            color: white;
+            border-color: transparent;
+        }
+        .store-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .btn-save, .btn-reset {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-save {
+            background: #28a745;
+            color: white;
+        }
+        .btn-save:hover {
+            background: #218838;
+        }
+        .btn-reset {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-reset:hover {
+            background: #5a6268;
+        }
+        .save-notice {
             background: #d4edda;
             color: #155724;
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-top: 8px;
+            font-size: 12px;
+            display: none;
+            text-align: center;
         }
-        .shift-tag.middle {
-            background: #fff3cd;
-            color: #856404;
+        .save-notice.show {
+            display: block;
+            animation: fadeInOut 2s ease-in-out;
         }
-        .shift-tag.late {
-            background: #cce5ff;
-            color: #004085;
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        /* 班別設定 2x2 網格 */
+        .shift-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
         }
         .shift-config {
             background: #f8f9fa;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
+            border-radius: 6px;
+            padding: 10px;
         }
         .shift-config-title {
             font-weight: bold;
             color: #333;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-        .shift-config .row {
-            gap: 10px;
-        }
-        .shift-config input {
-            padding: 8px;
+            margin-bottom: 8px;
             font-size: 13px;
         }
-        .shift-config label {
+        .shift-config .row {
+            gap: 6px;
+        }
+        .shift-config input {
+            padding: 6px;
             font-size: 12px;
-            margin-bottom: 4px;
+        }
+        .shift-config label {
+            font-size: 11px;
+            margin-bottom: 2px;
+        }
+        .shift-config .form-group {
+            margin-bottom: 0;
         }
     </style>
 </head>
@@ -211,134 +298,158 @@
         <h1>Excel 格式轉換工具</h1>
 
         <form id="convertForm">
-            <div class="form-group">
-                <label for="excelFile">上傳 Excel 檔案</label>
-                <input type="file" id="excelFile" accept=".xlsx,.xls" required>
-                <div class="hint">支援表單：總控、一線、出納、外帶、任務分配</div>
-            </div>
+            <div class="main-layout">
+                <!-- 左側面板 -->
+                <div class="left-panel">
+                    <div class="row">
+                        <div class="form-group">
+                            <label for="excelFile">上傳 Excel 檔案</label>
+                            <input type="file" id="excelFile" accept=".xlsx,.xls" required>
+                            <div class="hint">支援：總控、一線、出納、外帶、任務分配</div>
+                        </div>
+                        <div class="form-group" style="flex: 0 0 120px;">
+                            <label for="yearMonth">轉換年月</label>
+                            <input type="text" id="yearMonth" placeholder="202510" maxlength="6">
+                            <div class="hint">預設下個月</div>
+                        </div>
+                    </div>
 
-            <div class="form-group">
-                <label for="yearMonth">轉換年月</label>
-                <input type="text" id="yearMonth" placeholder="例如: 202510" maxlength="6">
-                <div class="hint">預設為下個月</div>
-            </div>
+                    <div class="action-buttons">
+                        <button type="submit" id="submitBtn" class="btn-primary">開始轉換</button>
+                        <button type="button" id="downloadBtn" class="btn-download" onclick="downloadResult()">📥 下載結果</button>
+                    </div>
 
-            <div class="section-title">各職務班別切分設定</div>
-            <div class="hint" style="margin-bottom: 15px;">留空表示不從此點切分。早班切點前(含)為早班，晚班切點後(含)為晚班，中下切點到晚班切點之間為中下班，其餘為中班。</div>
+                    <div id="status"></div>
 
-            <!-- 總控 -->
-            <div class="shift-config">
-                <div class="shift-config-title">總控</div>
-                <div class="row">
+                    <div id="previewSection">
+                        <h3>轉換結果預覽（前20筆）</h3>
+                        <div class="preview-wrapper">
+                            <table class="preview-table" id="previewTable">
+                                <thead>
+                                    <tr>
+                                        <th>日期</th>
+                                        <th>工號</th>
+                                        <th>任務代碼</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="section-title">Google Sheets 對照表網址</div>
                     <div class="form-group">
-                        <label>早班切點</label>
-                        <input type="number" id="cut_總控_early" value="1050" min="0" max="2359" placeholder="留空不切">
+                        <label for="employeeSheetUrl">員工工號對照表</label>
+                        <input type="text" id="employeeSheetUrl"
+                               value="https://docs.google.com/spreadsheets/d/1ZKRX1M1GZDSdgDe5i5JSveuEaYj3ZynaYJqvrzVNwvA/edit?gid=1729770798#gid=1729770798">
                     </div>
                     <div class="form-group">
-                        <label>中下切點</label>
-                        <input type="number" id="cut_總控_midLate" min="0" max="2359" placeholder="留空不切">
+                        <label for="taskCodeSheetUrl">任務代碼對照表</label>
+                        <input type="text" id="taskCodeSheetUrl"
+                               value="https://docs.google.com/spreadsheets/d/1ZKRX1M1GZDSdgDe5i5JSveuEaYj3ZynaYJqvrzVNwvA/edit?gid=0#gid=0">
                     </div>
-                    <div class="form-group">
-                        <label>晚班切點</label>
-                        <input type="number" id="cut_總控_late" value="1150" min="0" max="2359" placeholder="留空不切">
+                </div>
+
+                <!-- 右側面板 - 班別設定 -->
+                <div class="right-panel">
+                    <div class="section-title" style="margin-top: 0;">班別切分設定</div>
+
+                    <!-- 門市選擇 Tab -->
+                    <div class="store-tabs">
+                        <div class="store-tab active" data-store="A" onclick="selectStore('A')">A 門市</div>
+                        <div class="store-tab" data-store="B" onclick="selectStore('B')">B 門市</div>
+                        <div class="store-tab" data-store="C" onclick="selectStore('C')">C 門市</div>
+                    </div>
+
+                    <div class="store-actions">
+                        <button type="button" class="btn-save" onclick="saveStoreSettings()">💾 儲存設定</button>
+                        <button type="button" class="btn-reset" onclick="resetToDefault()">↩ 恢復預設</button>
+                    </div>
+                    <div id="saveNotice" class="save-notice"></div>
+
+                    <div class="hint" style="margin: 8px 0;">留空=不切分 | 早班≤切點 | 晚班≥切點 | 中下=中下切點~晚班切點</div>
+
+                    <!-- 班別設定 2x2 網格 -->
+                    <div class="shift-grid">
+                        <!-- 總控 -->
+                        <div class="shift-config">
+                            <div class="shift-config-title">總控</div>
+                            <div class="row">
+                                <div class="form-group">
+                                    <label>早班</label>
+                                    <input type="number" id="cut_總控_early" value="1050" min="0" max="2359" placeholder="留空">
+                                </div>
+                                <div class="form-group">
+                                    <label>中下</label>
+                                    <input type="number" id="cut_總控_midLate" min="0" max="2359" placeholder="留空">
+                                </div>
+                                <div class="form-group">
+                                    <label>晚班</label>
+                                    <input type="number" id="cut_總控_late" value="1150" min="0" max="2359" placeholder="留空">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 一線 -->
+                        <div class="shift-config">
+                            <div class="shift-config-title">一線</div>
+                            <div class="row">
+                                <div class="form-group">
+                                    <label>早班</label>
+                                    <input type="number" id="cut_一線_early" value="1020" min="0" max="2359" placeholder="留空">
+                                </div>
+                                <div class="form-group">
+                                    <label>中下</label>
+                                    <input type="number" id="cut_一線_midLate" value="1150" min="0" max="2359" placeholder="留空">
+                                </div>
+                                <div class="form-group">
+                                    <label>晚班</label>
+                                    <input type="number" id="cut_一線_late" value="1200" min="0" max="2359" placeholder="留空">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 出納 -->
+                        <div class="shift-config">
+                            <div class="shift-config-title">出納</div>
+                            <div class="row">
+                                <div class="form-group">
+                                    <label>早班</label>
+                                    <input type="number" id="cut_出納_early" value="1050" min="0" max="2359" placeholder="留空">
+                                </div>
+                                <div class="form-group">
+                                    <label>中下</label>
+                                    <input type="number" id="cut_出納_midLate" value="1150" min="0" max="2359" placeholder="留空">
+                                </div>
+                                <div class="form-group">
+                                    <label>晚班</label>
+                                    <input type="number" id="cut_出納_late" value="1200" min="0" max="2359" placeholder="留空">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 外帶 -->
+                        <div class="shift-config">
+                            <div class="shift-config-title">外帶</div>
+                            <div class="row">
+                                <div class="form-group">
+                                    <label>早班</label>
+                                    <input type="number" id="cut_外帶_early" min="0" max="2359" placeholder="留空">
+                                </div>
+                                <div class="form-group">
+                                    <label>中下</label>
+                                    <input type="number" id="cut_外帶_midLate" min="0" max="2359" placeholder="留空">
+                                </div>
+                                <div class="form-group">
+                                    <label>晚班</label>
+                                    <input type="number" id="cut_外帶_late" value="1120" min="0" max="2359" placeholder="留空">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <!-- 一線 -->
-            <div class="shift-config">
-                <div class="shift-config-title">一線</div>
-                <div class="row">
-                    <div class="form-group">
-                        <label>早班切點</label>
-                        <input type="number" id="cut_一線_early" value="1050" min="0" max="2359" placeholder="留空不切">
-                    </div>
-                    <div class="form-group">
-                        <label>中下切點</label>
-                        <input type="number" id="cut_一線_midLate" value="1150" min="0" max="2359" placeholder="留空不切">
-                    </div>
-                    <div class="form-group">
-                        <label>晚班切點</label>
-                        <input type="number" id="cut_一線_late" value="1200" min="0" max="2359" placeholder="留空不切">
-                    </div>
-                </div>
-            </div>
-
-            <!-- 出納 -->
-            <div class="shift-config">
-                <div class="shift-config-title">出納</div>
-                <div class="row">
-                    <div class="form-group">
-                        <label>早班切點</label>
-                        <input type="number" id="cut_出納_early" value="1050" min="0" max="2359" placeholder="留空不切">
-                    </div>
-                    <div class="form-group">
-                        <label>中下切點</label>
-                        <input type="number" id="cut_出納_midLate" value="1150" min="0" max="2359" placeholder="留空不切">
-                    </div>
-                    <div class="form-group">
-                        <label>晚班切點</label>
-                        <input type="number" id="cut_出納_late" value="1200" min="0" max="2359" placeholder="留空不切">
-                    </div>
-                </div>
-            </div>
-
-            <!-- 外帶 -->
-            <div class="shift-config">
-                <div class="shift-config-title">外帶</div>
-                <div class="row">
-                    <div class="form-group">
-                        <label>早班切點</label>
-                        <input type="number" id="cut_外帶_early" min="0" max="2359" placeholder="留空不切">
-                    </div>
-                    <div class="form-group">
-                        <label>中下切點</label>
-                        <input type="number" id="cut_外帶_midLate" min="0" max="2359" placeholder="留空不切">
-                    </div>
-                    <div class="form-group">
-                        <label>晚班切點</label>
-                        <input type="number" id="cut_外帶_late" value="1150" min="0" max="2359" placeholder="留空不切">
-                    </div>
-                </div>
-            </div>
-
-            <div class="section-title collapsible" onclick="toggleSection(this)">
-                進階設定 - Google Sheets 對照表網址
-            </div>
-            <div class="collapsible-content">
-                <div class="form-group">
-                    <label for="employeeSheetUrl">員工工號對照表</label>
-                    <input type="text" id="employeeSheetUrl"
-                           value="https://docs.google.com/spreadsheets/d/1ZKRX1M1GZDSdgDe5i5JSveuEaYj3ZynaYJqvrzVNwvA/edit?gid=1729770798#gid=1729770798">
-                    <div class="hint">姓名對照工號的 Google Sheets（需設為公開）</div>
-                </div>
-                <div class="form-group">
-                    <label for="taskCodeSheetUrl">任務代碼對照表</label>
-                    <input type="text" id="taskCodeSheetUrl"
-                           value="https://docs.google.com/spreadsheets/d/1ZKRX1M1GZDSdgDe5i5JSveuEaYj3ZynaYJqvrzVNwvA/edit?gid=0#gid=0">
-                    <div class="hint">任務代碼對照表（班別代碼 + 任務分配代碼共用，需設為公開）</div>
-                </div>
-            </div>
-
-            <button type="submit" id="submitBtn">開始轉換</button>
         </form>
-
-        <div id="status"></div>
-
-        <div id="previewSection">
-            <h3>轉換結果預覽（前20筆）</h3>
-            <table class="preview-table" id="previewTable">
-                <thead>
-                    <tr>
-                        <th>日期</th>
-                        <th>工號</th>
-                        <th>任務代碼</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-            <button type="button" id="downloadBtn" onclick="downloadResult()">下載轉換結果</button>
-        </div>
     </div>
 
     <script>
@@ -356,6 +467,183 @@
 
         // 設定預設年月
         document.getElementById('yearMonth').value = getNextMonth();
+
+        // ========== 門市設定管理 ==========
+
+        // 預設 Google Sheets URL
+        const defaultUrls = {
+            employeeSheetUrl: 'https://docs.google.com/spreadsheets/d/1ZKRX1M1GZDSdgDe5i5JSveuEaYj3ZynaYJqvrzVNwvA/edit?gid=1729770798#gid=1729770798',
+            taskCodeSheetUrl: 'https://docs.google.com/spreadsheets/d/1ZKRX1M1GZDSdgDe5i5JSveuEaYj3ZynaYJqvrzVNwvA/edit?gid=0#gid=0'
+        };
+
+        // 各門市的預設班別切分設定（含 Google Sheets URL）
+        const storeDefaults = {
+            'A': {
+                '總控': { early: 1050, midLate: '', late: 1150 },
+                '一線': { early: 1020, midLate: 1150, late: 1200 },
+                '出納': { early: 1050, midLate: 1150, late: 1200 },
+                '外帶': { early: '', midLate: '', late: 1120 },
+                employeeSheetUrl: defaultUrls.employeeSheetUrl,
+                taskCodeSheetUrl: defaultUrls.taskCodeSheetUrl
+            },
+            'B': {
+                '總控': { early: 1050, midLate: '', late: 1150 },
+                '一線': { early: 1020, midLate: 1150, late: 1200 },
+                '出納': { early: 1050, midLate: 1150, late: 1200 },
+                '外帶': { early: '', midLate: '', late: 1120 },
+                employeeSheetUrl: defaultUrls.employeeSheetUrl,
+                taskCodeSheetUrl: defaultUrls.taskCodeSheetUrl
+            },
+            'C': {
+                '總控': { early: 1050, midLate: '', late: 1150 },
+                '一線': { early: 1020, midLate: 1150, late: 1200 },
+                '出納': { early: 1050, midLate: 1150, late: 1200 },
+                '外帶': { early: '', midLate: '', late: 1120 },
+                employeeSheetUrl: defaultUrls.employeeSheetUrl,
+                taskCodeSheetUrl: defaultUrls.taskCodeSheetUrl
+            }
+        };
+
+        // 從 localStorage 取得門市設定
+        function getStoredSettings(store) {
+            const key = `shiftSettings_${store}`;
+            const stored = localStorage.getItem(key);
+            if (stored) {
+                try {
+                    return JSON.parse(stored);
+                } catch (e) {
+                    console.error('解析儲存設定失敗:', e);
+                }
+            }
+            return null;
+        }
+
+        // 儲存門市設定到 localStorage
+        function saveSettingsToStorage(store, settings) {
+            const key = `shiftSettings_${store}`;
+            localStorage.setItem(key, JSON.stringify(settings));
+            localStorage.setItem('lastSelectedStore', store);
+        }
+
+        // 取得目前表單上的設定值（含 Google Sheets URL）
+        function getCurrentFormSettings() {
+            const sheets = ['總控', '一線', '出納', '外帶'];
+            const settings = {};
+            for (const sheet of sheets) {
+                settings[sheet] = {
+                    early: document.getElementById(`cut_${sheet}_early`).value,
+                    midLate: document.getElementById(`cut_${sheet}_midLate`).value,
+                    late: document.getElementById(`cut_${sheet}_late`).value
+                };
+            }
+            // 加入 Google Sheets URL
+            settings.employeeSheetUrl = document.getElementById('employeeSheetUrl').value;
+            settings.taskCodeSheetUrl = document.getElementById('taskCodeSheetUrl').value;
+            return settings;
+        }
+
+        // 將設定值套用到表單（含 Google Sheets URL）
+        function applySettingsToForm(settings) {
+            const sheets = ['總控', '一線', '出納', '外帶'];
+            for (const sheet of sheets) {
+                if (settings[sheet]) {
+                    document.getElementById(`cut_${sheet}_early`).value = settings[sheet].early || '';
+                    document.getElementById(`cut_${sheet}_midLate`).value = settings[sheet].midLate || '';
+                    document.getElementById(`cut_${sheet}_late`).value = settings[sheet].late || '';
+                }
+            }
+            // 套用 Google Sheets URL
+            if (settings.employeeSheetUrl !== undefined) {
+                document.getElementById('employeeSheetUrl').value = settings.employeeSheetUrl;
+            }
+            if (settings.taskCodeSheetUrl !== undefined) {
+                document.getElementById('taskCodeSheetUrl').value = settings.taskCodeSheetUrl;
+            }
+        }
+
+        // 載入門市設定（優先使用已儲存的，否則用預設值）
+        function loadStoreSettings(store) {
+            const stored = getStoredSettings(store);
+            if (stored) {
+                applySettingsToForm(stored);
+                console.log(`載入 ${store} 門市的儲存設定`);
+            } else {
+                applySettingsToForm(storeDefaults[store]);
+                console.log(`載入 ${store} 門市的預設設定`);
+            }
+        }
+
+        // 取得目前選中的門市
+        function getCurrentStore() {
+            const activeTab = document.querySelector('.store-tab.active');
+            return activeTab ? activeTab.dataset.store : 'A';
+        }
+
+        // 門市切換事件（Tab 點擊）
+        function selectStore(store) {
+            // 更新 Tab 樣式
+            document.querySelectorAll('.store-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`.store-tab[data-store="${store}"]`).classList.add('active');
+
+            // 載入該門市的設定
+            loadStoreSettings(store);
+            localStorage.setItem('lastSelectedStore', store);
+        }
+
+        // 儲存當前門市設定
+        function saveStoreSettings() {
+            const store = getCurrentStore();
+            const settings = getCurrentFormSettings();
+            saveSettingsToStorage(store, settings);
+
+            // 顯示儲存成功提示
+            const notice = document.getElementById('saveNotice');
+            notice.textContent = `✓ ${store} 門市設定已儲存`;
+            notice.classList.remove('show');
+            void notice.offsetWidth; // 觸發 reflow 以重新播放動畫
+            notice.classList.add('show');
+
+            setTimeout(() => {
+                notice.classList.remove('show');
+            }, 2000);
+        }
+
+        // 恢復預設值
+        function resetToDefault() {
+            const store = getCurrentStore();
+            applySettingsToForm(storeDefaults[store]);
+
+            const notice = document.getElementById('saveNotice');
+            notice.textContent = `↩ 已恢復 ${store} 門市預設值（尚未儲存）`;
+            notice.classList.remove('show');
+            void notice.offsetWidth;
+            notice.classList.add('show');
+
+            setTimeout(() => {
+                notice.classList.remove('show');
+            }, 2000);
+        }
+
+        // 頁面載入時初始化門市設定
+        function initStoreSettings() {
+            const lastStore = localStorage.getItem('lastSelectedStore') || 'A';
+            // 設定 active tab
+            document.querySelectorAll('.store-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            const targetTab = document.querySelector(`.store-tab[data-store="${lastStore}"]`);
+            if (targetTab) {
+                targetTab.classList.add('active');
+            }
+            loadStoreSettings(lastStore);
+        }
+
+        // 執行初始化
+        initStoreSettings();
+
+        // ========== 班別切分設定 ==========
 
         // 取得各職務的切分點設定
         function getShiftCutoffs() {
@@ -375,13 +663,6 @@
             }
 
             return cutoffs;
-        }
-
-        // 展開/收起進階設定
-        function toggleSection(element) {
-            element.classList.toggle('active');
-            const content = element.nextElementSibling;
-            content.classList.toggle('show');
         }
 
         // 從 Google Sheets URL 提取資訊並取得 CSV URL
@@ -835,6 +1116,13 @@
             });
 
             document.getElementById('previewSection').style.display = 'block';
+
+            // 顯示下載按鈕
+            if (data.length > 0) {
+                document.getElementById('downloadBtn').classList.add('show');
+            } else {
+                document.getElementById('downloadBtn').classList.remove('show');
+            }
         }
 
         function downloadResult() {
