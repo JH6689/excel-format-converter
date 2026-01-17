@@ -13,74 +13,200 @@
         body {
             margin: 0;
             padding: 10px;
-            background: linear-gradient(135deg, #0d9488 0%, #0891b2 100%);
+            background: linear-gradient(135deg, #DDD1E9 0%, #A4B5D5 100%);
             min-height: 100vh;
         }
         .container {
-            max-width: 1200px;
+            max-width: 1100px;
             margin: 0 auto;
-            background: white;
+            background: #F7F6F5;
             border-radius: 12px;
-            padding: 15px 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 12px 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
         }
         h1 {
             text-align: center;
-            color: #333;
-            margin: 5px 0 15px 0;
-            font-size: 22px;
+            color: #5a4a6a;
+            margin: 0 0 12px 0;
+            font-size: 20px;
         }
         .form-group {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         label {
             display: block;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
             font-weight: bold;
-            color: #555;
-            font-size: 13px;
+            color: #5a4a6a;
+            font-size: 12px;
         }
         input[type="text"],
         input[type="number"],
         input[type="file"] {
             width: 100%;
-            padding: 8px;
-            border: 2px solid #e0e0e0;
+            padding: 6px 8px;
+            border: 2px solid #DDD1E9;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: 12px;
             transition: border-color 0.3s;
+            background: white;
         }
         input:focus {
             outline: none;
-            border-color: #0d9488;
+            border-color: #A4B5D5;
         }
         .row {
             display: flex;
-            gap: 15px;
+            gap: 12px;
         }
         .row .form-group {
             flex: 1;
         }
+
+        /* 主要三欄佈局 */
         .main-layout {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            grid-template-columns: 1fr 1.5fr 1fr;
+            gap: 12px;
         }
-        .left-panel, .right-panel {
-            min-width: 0;
+
+        .panel {
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid #DDD1E9;
         }
+
         .section-title {
-            background: #f5f5f5;
-            padding: 8px 12px;
+            background: linear-gradient(135deg, #EABCDD 0%, #DDD1E9 100%);
+            padding: 6px 10px;
             border-radius: 6px;
-            margin: 10px 0 8px 0;
-            color: #666;
-            font-size: 13px;
+            margin: 0 0 8px 0;
+            color: #5a4a6a;
+            font-size: 12px;
             font-weight: bold;
         }
+
+        /* 門市 Tab 按鈕 */
+        .store-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .store-tab {
+            flex: 1;
+            padding: 8px 10px;
+            border: 2px solid #A4B5D5;
+            border-radius: 6px;
+            background: white;
+            color: #5a4a6a;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .store-tab:hover {
+            background: #F0DFEA;
+        }
+        .store-tab.active {
+            background: linear-gradient(135deg, #A4B5D5 0%, #EABCDD 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .store-actions {
+            display: flex;
+            gap: 6px;
+        }
+        .btn-save, .btn-reset {
+            flex: 1;
+            padding: 6px 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-save {
+            background: #A4B5D5;
+            color: white;
+        }
+        .btn-save:hover {
+            background: #8fa3c7;
+        }
+        .btn-reset {
+            background: #DDD1E9;
+            color: #5a4a6a;
+        }
+        .btn-reset:hover {
+            background: #ccc0db;
+        }
+
+        .save-notice {
+            background: #d4edda;
+            color: #155724;
+            padding: 5px 8px;
+            border-radius: 6px;
+            margin-top: 6px;
+            font-size: 11px;
+            display: none;
+            text-align: center;
+        }
+        .save-notice.show {
+            display: block;
+            animation: fadeInOut 2s ease-in-out;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* 班別設定 2x2 網格 */
+        .shift-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .shift-config {
+            background: #F0DFEA;
+            border-radius: 6px;
+            padding: 8px;
+        }
+        .shift-config-title {
+            font-weight: bold;
+            color: #5a4a6a;
+            margin-bottom: 6px;
+            font-size: 12px;
+        }
+        .shift-config .row {
+            gap: 4px;
+        }
+        .shift-config input {
+            padding: 4px 6px;
+            font-size: 11px;
+        }
+        .shift-config label {
+            font-size: 10px;
+            margin-bottom: 2px;
+        }
+        .shift-config .form-group {
+            margin-bottom: 0;
+        }
+
+        .hint {
+            font-size: 10px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        /* 按鈕區 */
         .btn-primary {
-            padding: 12px 20px;
-            background: linear-gradient(135deg, #0d9488 0%, #0891b2 100%);
+            padding: 10px 16px;
+            background: linear-gradient(135deg, #EABCDD 0%, #A4B5D5 100%);
             color: white;
             border: none;
             border-radius: 8px;
@@ -88,10 +214,11 @@
             font-weight: bold;
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
         }
         .btn-primary:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(13, 148, 136, 0.4);
+            box-shadow: 0 4px 12px rgba(164, 181, 213, 0.4);
         }
         .btn-primary:disabled {
             background: #ccc;
@@ -100,8 +227,8 @@
             box-shadow: none;
         }
         .btn-download {
-            padding: 12px 20px;
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            padding: 10px 16px;
+            background: linear-gradient(135deg, #A4B5D5 0%, #8fa3c7 100%);
             color: white;
             border: none;
             border-radius: 8px;
@@ -109,33 +236,27 @@
             font-weight: bold;
             cursor: pointer;
             transition: transform 0.2s;
+            width: 100%;
             display: none;
+            margin-top: 8px;
         }
         .btn-download:hover {
             transform: translateY(-1px);
         }
         .btn-download.show {
-            display: inline-block;
+            display: block;
         }
+
         .action-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
+            margin-top: 8px;
         }
-        .action-buttons button {
-            flex: 1;
-        }
-        .hint {
-            font-size: 11px;
-            color: #888;
-            margin-top: 3px;
-        }
+
         #status {
-            margin-top: 10px;
-            padding: 10px;
+            margin-top: 8px;
+            padding: 8px;
             border-radius: 6px;
             display: none;
-            font-size: 13px;
+            font-size: 12px;
         }
         #status.success {
             background: #d4edda;
@@ -152,24 +273,25 @@
             color: #856404;
             display: block;
         }
+
         .preview-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px;
-            margin-top: 8px;
+            font-size: 11px;
         }
         .preview-table th, .preview-table td {
-            border: 1px solid #ddd;
-            padding: 5px 8px;
+            border: 1px solid #DDD1E9;
+            padding: 4px 6px;
             text-align: left;
         }
         .preview-table th {
-            background: #f5f5f5;
+            background: #F0DFEA;
+            color: #5a4a6a;
         }
         .preview-wrapper {
-            max-height: 200px;
+            max-height: 150px;
             overflow-y: auto;
-            border: 1px solid #ddd;
+            border: 1px solid #DDD1E9;
             border-radius: 6px;
         }
         .preview-wrapper .preview-table {
@@ -177,119 +299,18 @@
         }
         #previewSection {
             display: none;
-            margin-top: 10px;
+            margin-top: 8px;
         }
         #previewSection h3 {
-            font-size: 13px;
-            margin: 0 0 8px 0;
-            color: #666;
-        }
-        /* 門市 Tab 按鈕 */
-        .store-tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        .store-tab {
-            flex: 1;
-            padding: 10px 15px;
-            border: 2px solid #0d9488;
-            border-radius: 8px;
-            background: white;
-            color: #0d9488;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
-        }
-        .store-tab:hover {
-            background: #f0fdfa;
-        }
-        .store-tab.active {
-            background: linear-gradient(135deg, #0d9488 0%, #0891b2 100%);
-            color: white;
-            border-color: transparent;
-        }
-        .store-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 8px;
-        }
-        .btn-save, .btn-reset {
-            flex: 1;
-            padding: 8px 12px;
-            border: none;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-save {
-            background: #28a745;
-            color: white;
-        }
-        .btn-save:hover {
-            background: #218838;
-        }
-        .btn-reset {
-            background: #6c757d;
-            color: white;
-        }
-        .btn-reset:hover {
-            background: #5a6268;
-        }
-        .save-notice {
-            background: #d4edda;
-            color: #155724;
-            padding: 6px 10px;
-            border-radius: 6px;
-            margin-top: 8px;
-            font-size: 12px;
-            display: none;
-            text-align: center;
-        }
-        .save-notice.show {
-            display: block;
-            animation: fadeInOut 2s ease-in-out;
-        }
-        @keyframes fadeInOut {
-            0% { opacity: 0; }
-            20% { opacity: 1; }
-            80% { opacity: 1; }
-            100% { opacity: 0; }
-        }
-        /* 班別設定 2x2 網格 */
-        .shift-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        .shift-config {
-            background: #f8f9fa;
-            border-radius: 6px;
-            padding: 10px;
-        }
-        .shift-config-title {
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 8px;
-            font-size: 13px;
-        }
-        .shift-config .row {
-            gap: 6px;
-        }
-        .shift-config input {
-            padding: 6px;
-            font-size: 12px;
-        }
-        .shift-config label {
             font-size: 11px;
-            margin-bottom: 2px;
+            margin: 0 0 6px 0;
+            color: #5a4a6a;
         }
-        .shift-config .form-group {
-            margin-bottom: 0;
+
+        /* URL 輸入框較小 */
+        .url-input {
+            font-size: 10px;
+            padding: 5px 6px;
         }
     </style>
 </head>
@@ -299,77 +320,37 @@
 
         <form id="convertForm">
             <div class="main-layout">
-                <!-- 左側面板 -->
-                <div class="left-panel">
-                    <div class="row">
-                        <div class="form-group">
-                            <label for="excelFile">上傳 Excel 檔案</label>
-                            <input type="file" id="excelFile" accept=".xlsx,.xls" required>
-                            <div class="hint">支援：總控、一線、出納、外帶、任務分配</div>
-                        </div>
-                        <div class="form-group" style="flex: 0 0 120px;">
-                            <label for="yearMonth">轉換年月</label>
-                            <input type="text" id="yearMonth" placeholder="202510" maxlength="6">
-                            <div class="hint">預設下個月</div>
-                        </div>
-                    </div>
-
-                    <div class="action-buttons">
-                        <button type="submit" id="submitBtn" class="btn-primary">開始轉換</button>
-                        <button type="button" id="downloadBtn" class="btn-download" onclick="downloadResult()">📥 下載結果</button>
-                    </div>
-
-                    <div id="status"></div>
-
-                    <div id="previewSection">
-                        <h3>轉換結果預覽（前20筆）</h3>
-                        <div class="preview-wrapper">
-                            <table class="preview-table" id="previewTable">
-                                <thead>
-                                    <tr>
-                                        <th>日期</th>
-                                        <th>工號</th>
-                                        <th>任務代碼</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="section-title">Google Sheets 對照表網址</div>
-                    <div class="form-group">
-                        <label for="employeeSheetUrl">員工工號對照表</label>
-                        <input type="text" id="employeeSheetUrl"
-                               value="https://docs.google.com/spreadsheets/d/1ZKRX1M1GZDSdgDe5i5JSveuEaYj3ZynaYJqvrzVNwvA/edit?gid=1729770798#gid=1729770798">
-                    </div>
-                    <div class="form-group">
-                        <label for="taskCodeSheetUrl">任務代碼對照表</label>
-                        <input type="text" id="taskCodeSheetUrl"
-                               value="https://docs.google.com/spreadsheets/d/1ZKRX1M1GZDSdgDe5i5JSveuEaYj3ZynaYJqvrzVNwvA/edit?gid=0#gid=0">
-                    </div>
-                </div>
-
-                <!-- 右側面板 - 班別設定 -->
-                <div class="right-panel">
-                    <div class="section-title" style="margin-top: 0;">班別切分設定</div>
-
-                    <!-- 門市選擇 Tab -->
+                <!-- 左側：門市選擇 + 年月 + 檔案 -->
+                <div class="panel">
+                    <div class="section-title">1. 選擇門市</div>
                     <div class="store-tabs">
                         <div class="store-tab active" data-store="A" onclick="selectStore('A')">A 門市</div>
                         <div class="store-tab" data-store="B" onclick="selectStore('B')">B 門市</div>
                         <div class="store-tab" data-store="C" onclick="selectStore('C')">C 門市</div>
                     </div>
-
                     <div class="store-actions">
-                        <button type="button" class="btn-save" onclick="saveStoreSettings()">💾 儲存設定</button>
-                        <button type="button" class="btn-reset" onclick="resetToDefault()">↩ 恢復預設</button>
+                        <button type="button" class="btn-save" onclick="saveStoreSettings()">💾 儲存</button>
+                        <button type="button" class="btn-reset" onclick="resetToDefault()">↩ 預設</button>
                     </div>
                     <div id="saveNotice" class="save-notice"></div>
 
-                    <div class="hint" style="margin: 8px 0;">留空=不切分 | 早班≤切點 | 晚班≥切點 | 中下=中下切點~晚班切點</div>
+                    <div class="section-title" style="margin-top: 10px;">2. 轉換年月</div>
+                    <div class="form-group">
+                        <input type="text" id="yearMonth" placeholder="202510" maxlength="6">
+                        <div class="hint">預設下個月</div>
+                    </div>
 
-                    <!-- 班別設定 2x2 網格 -->
+                    <div class="section-title" style="margin-top: 10px;">3. 上傳檔案</div>
+                    <div class="form-group">
+                        <input type="file" id="excelFile" accept=".xlsx,.xls" required>
+                        <div class="hint">支援：總控、一線、出納、外帶、任務分配</div>
+                    </div>
+                </div>
+
+                <!-- 中間：班別切分設定 -->
+                <div class="panel">
+                    <div class="section-title">4. 班別切分設定</div>
+                    <div class="hint" style="margin-bottom: 6px;">留空=不切分 | 早班≤切點 | 晚班≥切點</div>
                     <div class="shift-grid">
                         <!-- 總控 -->
                         <div class="shift-config">
@@ -445,6 +426,45 @@
                                     <input type="number" id="cut_外帶_late" value="1120" min="0" max="2359" placeholder="留空">
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右側：對照表 + 按鈕 + 預覽 -->
+                <div class="panel">
+                    <div class="section-title">5. 對照表網址</div>
+                    <div class="form-group">
+                        <label>員工工號</label>
+                        <input type="text" id="employeeSheetUrl" class="url-input"
+                               value="https://docs.google.com/spreadsheets/d/1ZKRX1M1GZDSdgDe5i5JSveuEaYj3ZynaYJqvrzVNwvA/edit?gid=1729770798#gid=1729770798">
+                    </div>
+                    <div class="form-group">
+                        <label>任務代碼</label>
+                        <input type="text" id="taskCodeSheetUrl" class="url-input"
+                               value="https://docs.google.com/spreadsheets/d/1ZKRX1M1GZDSdgDe5i5JSveuEaYj3ZynaYJqvrzVNwvA/edit?gid=0#gid=0">
+                    </div>
+
+                    <div class="section-title" style="margin-top: 10px;">6. 執行轉換</div>
+                    <div class="action-buttons">
+                        <button type="submit" id="submitBtn" class="btn-primary">開始轉換</button>
+                        <button type="button" id="downloadBtn" class="btn-download" onclick="downloadResult()">📥 下載結果</button>
+                    </div>
+
+                    <div id="status"></div>
+
+                    <div id="previewSection">
+                        <h3>預覽（前20筆）</h3>
+                        <div class="preview-wrapper">
+                            <table class="preview-table" id="previewTable">
+                                <thead>
+                                    <tr>
+                                        <th>日期</th>
+                                        <th>工號</th>
+                                        <th>代碼</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -616,7 +636,7 @@
             applySettingsToForm(storeDefaults[store]);
 
             const notice = document.getElementById('saveNotice');
-            notice.textContent = `↩ 已恢復 ${store} 門市預設值（尚未儲存）`;
+            notice.textContent = `↩ 已恢復 ${store} 門市預設值`;
             notice.classList.remove('show');
             void notice.offsetWidth;
             notice.classList.add('show');
@@ -1080,9 +1100,9 @@
                 convertedData = result;
 
                 if (result.length === 0) {
-                    showStatus(`沒有可轉換的資料。請確認：1) Google Sheets 對照表是否設為公開 2) 對照表中是否有對應的任務代碼`, 'error');
+                    showStatus(`沒有可轉換的資料。請確認對照表是否公開且有對應代碼`, 'error');
                 } else {
-                    showStatus(`轉換成功！共 ${result.length} 筆資料（來自：${processedSheets.join('、')}）`, 'success');
+                    showStatus(`轉換成功！共 ${result.length} 筆（${processedSheets.join('、')}）`, 'success');
                 }
                 showPreview(result);
 
