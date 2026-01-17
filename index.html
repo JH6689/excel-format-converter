@@ -13,7 +13,7 @@
         body {
             margin: 0;
             padding: 10px;
-            background: linear-gradient(135deg, #DDD1E9 0%, #A4B5D5 100%);
+            background: linear-gradient(135deg, #DDD1E9 0%, #2e75b6 100%);
             min-height: 100vh;
         }
         .container {
@@ -53,7 +53,7 @@
         }
         input:focus {
             outline: none;
-            border-color: #A4B5D5;
+            border-color: #2e75b6;
         }
         .row {
             display: flex;
@@ -78,12 +78,12 @@
         }
 
         .section-title {
-            background: linear-gradient(135deg, #EABCDD 0%, #DDD1E9 100%);
+            background: #2e75b6;
             padding: 6px 10px;
             border-radius: 6px;
             margin: 0 0 8px 0;
-            color: #5a4a6a;
-            font-size: 12px;
+            color: white;
+            font-size: 14px;
             font-weight: bold;
         }
 
@@ -96,7 +96,7 @@
         .store-tab {
             flex: 1;
             padding: 8px 10px;
-            border: 2px solid #A4B5D5;
+            border: 2px solid #2e75b6;
             border-radius: 6px;
             background: white;
             color: #5a4a6a;
@@ -110,7 +110,7 @@
             background: #F0DFEA;
         }
         .store-tab.active {
-            background: linear-gradient(135deg, #A4B5D5 0%, #EABCDD 100%);
+            background: #2e75b6;
             color: white;
             border-color: transparent;
         }
@@ -130,18 +130,18 @@
             transition: all 0.2s;
         }
         .btn-save {
-            background: #A4B5D5;
-            color: white;
+            background: #9dc3e6;
+            color: #2e75b6;
         }
         .btn-save:hover {
-            background: #8fa3c7;
+            background: #7eb3e0;
         }
         .btn-reset {
-            background: #DDD1E9;
-            color: #5a4a6a;
+            background: #9dc3e6;
+            color: #2e75b6;
         }
         .btn-reset:hover {
-            background: #ccc0db;
+            background: #7eb3e0;
         }
 
         .save-notice {
@@ -172,13 +172,13 @@
             gap: 8px;
         }
         .shift-config {
-            background: #F0DFEA;
+            background: #9dc3e6;
             border-radius: 6px;
             padding: 8px;
         }
         .shift-config-title {
             font-weight: bold;
-            color: #5a4a6a;
+            color: #2e75b6;
             margin-bottom: 6px;
             font-size: 12px;
         }
@@ -192,6 +192,7 @@
         .shift-config label {
             font-size: 10px;
             margin-bottom: 2px;
+            color: #2e75b6;
         }
         .shift-config .form-group {
             margin-bottom: 0;
@@ -206,7 +207,7 @@
         /* 按鈕區 */
         .btn-primary {
             padding: 10px 16px;
-            background: linear-gradient(135deg, #EABCDD 0%, #A4B5D5 100%);
+            background: #2e75b6;
             color: white;
             border: none;
             border-radius: 8px;
@@ -218,7 +219,7 @@
         }
         .btn-primary:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(164, 181, 213, 0.4);
+            box-shadow: 0 4px 12px rgba(164, 181, 213, 0.5);
         }
         .btn-primary:disabled {
             background: #ccc;
@@ -228,7 +229,7 @@
         }
         .btn-download {
             padding: 10px 16px;
-            background: linear-gradient(135deg, #A4B5D5 0%, #8fa3c7 100%);
+            background: #2e75b6;
             color: white;
             border: none;
             border-radius: 8px;
@@ -285,8 +286,8 @@
             text-align: left;
         }
         .preview-table th {
-            background: #F0DFEA;
-            color: #5a4a6a;
+            background: #2e75b6;
+            color: white;
         }
         .preview-wrapper {
             max-height: 150px;
@@ -327,10 +328,6 @@
                         <div class="store-tab active" data-store="A" onclick="selectStore('A')">A 門市</div>
                         <div class="store-tab" data-store="B" onclick="selectStore('B')">B 門市</div>
                         <div class="store-tab" data-store="C" onclick="selectStore('C')">C 門市</div>
-                    </div>
-                    <div class="store-actions">
-                        <button type="button" class="btn-save" onclick="saveStoreSettings()">💾 儲存</button>
-                        <button type="button" class="btn-reset" onclick="resetToDefault()">↩ 預設</button>
                     </div>
                     <div id="saveNotice" class="save-notice"></div>
 
@@ -427,6 +424,9 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                    <div style="text-align: right; margin-top: 8px;">
+                        <button type="button" class="btn-save" onclick="saveStoreSettings()">儲存預設值</button>
                     </div>
                 </div>
 
