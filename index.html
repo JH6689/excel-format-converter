@@ -404,6 +404,10 @@
                                     <input type="number" id="cut_出納_late" value="1200" min="0" max="2359" placeholder="留空">
                                 </div>
                             </div>
+                            <div class="form-group" style="margin-top: 4px;">
+                                <label>特殊班別時間（完全符合才觸發）</label>
+                                <input type="number" id="cut_出納_special" min="0" max="2359" placeholder="留空=不使用">
+                            </div>
                         </div>
 
                         <!-- 外帶 -->
@@ -443,6 +447,10 @@
                         <input type="text" id="taskCodeSheetUrl" class="url-input"
                                value="https://docs.google.com/spreadsheets/d/1ZKRX1M1GZDSdgDe5i5JSveuEaYj3ZynaYJqvrzVNwvA/edit?gid=0#gid=0">
                     </div>
+                    <div style="text-align: right; margin-top: 6px;">
+                        <button type="button" class="btn-save" onclick="saveUrlSettings()">儲存預設值</button>
+                    </div>
+                    <div id="urlSaveNotice" class="save-notice"></div>
 
                     <div class="section-title" style="margin-top: 10px;">6. 執行轉換</div>
                     <div class="action-buttons">
@@ -501,7 +509,7 @@
             'A': {
                 '總控': { early: 1050, midLate: '', late: 1150 },
                 '一線': { early: 1020, midLate: 1150, late: 1200 },
-                '出納': { early: 1050, midLate: 1150, late: 1200 },
+                '出納': { early: 1050, midLate: 1150, late: 1200, special: '' },
                 '外帶': { early: '', midLate: '', late: 1120 },
                 employeeSheetUrl: defaultUrls.employeeSheetUrl,
                 taskCodeSheetUrl: defaultUrls.taskCodeSheetUrl
@@ -509,7 +517,7 @@
             'B': {
                 '總控': { early: 1050, midLate: '', late: 1150 },
                 '一線': { early: 1020, midLate: 1150, late: 1200 },
-                '出納': { early: 1050, midLate: 1150, late: 1200 },
+                '出納': { early: 1050, midLate: 1150, late: 1200, special: '' },
                 '外帶': { early: '', midLate: '', late: 1120 },
                 employeeSheetUrl: defaultUrls.employeeSheetUrl,
                 taskCodeSheetUrl: defaultUrls.taskCodeSheetUrl
@@ -517,7 +525,7 @@
             'C': {
                 '總控': { early: 1050, midLate: '', late: 1150 },
                 '一線': { early: 1020, midLate: 1150, late: 1200 },
-                '出納': { early: 1050, midLate: 1150, late: 1200 },
+                '出納': { early: 1050, midLate: 1150, late: 1200, special: '' },
                 '外帶': { early: '', midLate: '', late: 1120 },
                 employeeSheetUrl: defaultUrls.employeeSheetUrl,
                 taskCodeSheetUrl: defaultUrls.taskCodeSheetUrl
@@ -555,6 +563,9 @@
                     midLate: document.getElementById(`cut_${sheet}_midLate`).value,
                     late: document.getElementById(`cut_${sheet}_late`).value
                 };
+                if (sheet === '出納') {
+                    settings[sheet].special = document.getElementById('cut_出納_special').value;
+                }
             }
             // 加入 Google Sheets URL
             settings.employeeSheetUrl = document.getElementById('employeeSheetUrl').value;
@@ -570,6 +581,9 @@
                     document.getElementById(`cut_${sheet}_early`).value = settings[sheet].early || '';
                     document.getElementById(`cut_${sheet}_midLate`).value = settings[sheet].midLate || '';
                     document.getElementById(`cut_${sheet}_late`).value = settings[sheet].late || '';
+                    if (sheet === '出納') {
+                        document.getElementById('cut_出納_special').value = settings[sheet].special || '';
+                    }
                 }
             }
             // 套用 Google Sheets URL
@@ -630,6 +644,23 @@
             }, 2000);
         }
 
+        // 儲存對照表網址（套用至目前門市）
+        function saveUrlSettings() {
+            const store = getCurrentStore();
+            const settings = getCurrentFormSettings();
+            saveSettingsToStorage(store, settings);
+
+            const notice = document.getElementById('urlSaveNotice');
+            notice.textContent = `✓ ${store} 門市網址已儲存`;
+            notice.classList.remove('show');
+            void notice.offsetWidth;
+            notice.classList.add('show');
+
+            setTimeout(() => {
+                notice.classList.remove('show');
+            }, 2000);
+        }
+
         // 恢復預設值
         function resetToDefault() {
             const store = getCurrentStore();
@@ -680,6 +711,11 @@
                     midLate: midLateVal ? parseInt(midLateVal) : null,
                     late: lateVal ? parseInt(lateVal) : null
                 };
+
+                if (sheet === '出納') {
+                    const specialVal = document.getElementById('cut_出納_special').value;
+                    cutoffs[sheet].special = specialVal ? parseInt(specialVal) : null;
+                }
             }
 
             return cutoffs;
@@ -695,29 +731,45 @@
             return `https://docs.google.com/spreadsheets/d/${spreadsheetIdMatch[1]}/export?format=csv&gid=${gid}`;
         }
 
-        // 解析 CSV
+        // 解析 CSV（支援儲存格內含換行的格式）
         function parseCsv(csvText) {
-            const lines = csvText.split('\n');
             const result = [];
-            for (const line of lines) {
-                if (!line.trim()) continue;
-                const row = [];
-                let current = '';
-                let inQuotes = false;
-                for (let i = 0; i < line.length; i++) {
-                    const char = line[i];
-                    if (char === '"') {
-                        inQuotes = !inQuotes;
-                    } else if (char === ',' && !inQuotes) {
-                        row.push(current.trim());
-                        current = '';
+            let row = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < csvText.length; i++) {
+                const char = csvText[i];
+
+                if (char === '"') {
+                    // 處理 "" 跳脫字元
+                    if (inQuotes && csvText[i + 1] === '"') {
+                        current += '"';
+                        i++;
                     } else {
-                        current += char;
+                        inQuotes = !inQuotes;
                     }
+                } else if (char === ',' && !inQuotes) {
+                    row.push(current.trim());
+                    current = '';
+                } else if ((char === '\n' || char === '\r') && !inQuotes) {
+                    // 引號外的換行 = 新的一行
+                    if (char === '\r' && csvText[i + 1] === '\n') i++; // 跳過 \r\n 的 \n
+                    row.push(current.trim());
+                    current = '';
+                    if (row.some(cell => cell !== '')) result.push(row);
+                    row = [];
+                } else {
+                    // 引號內的換行視為儲存格內容，直接移除（正規化）
+                    if ((char === '\n' || char === '\r') && inQuotes) continue;
+                    current += char;
                 }
-                row.push(current.trim());
-                result.push(row);
             }
+
+            // 最後一行
+            row.push(current.trim());
+            if (row.some(cell => cell !== '')) result.push(row);
+
             return result;
         }
 
@@ -737,6 +789,11 @@
             }
         }
 
+        // 正規化姓名：移除所有換行字元與前後空白
+        function normalizeName(name) {
+            return String(name).replace(/[\r\n]/g, '').trim();
+        }
+
         // 載入員工對照表
         async function loadEmployeeMapping(url) {
             const rows = await fetchGoogleSheet(url);
@@ -745,7 +802,7 @@
             const mapping = {};
             for (let i = 1; i < rows.length; i++) {
                 if (rows[i][0] && rows[i][1]) {
-                    mapping[rows[i][0].trim()] = rows[i][1].trim();
+                    mapping[normalizeName(rows[i][0])] = rows[i][1].trim();
                 }
             }
             return mapping;
@@ -756,11 +813,11 @@
             const rows = await fetchGoogleSheet(url);
 
             // 定義要處理的表單類型及其在雲端對照表的搜尋關鍵字
-            // 現在支援四種班別：早、中、中下、晚
+            // 現在支援四種班別：早、中、中下、晚（出納額外支援特殊班別）
             const sheetTypes = {
                 '總控': { searchKey: '總控', early: null, middle: null, midLate: null, late: null },
                 '一線': { searchKey: '一線', early: null, middle: null, midLate: null, late: null },
-                '出納': { searchKey: '出納', early: null, middle: null, midLate: null, late: null },
+                '出納': { searchKey: '出納', early: null, middle: null, midLate: null, late: null, special: null },
                 '外帶': { searchKey: '外', early: null, middle: null, midLate: null, late: null }
             };
 
@@ -769,7 +826,7 @@
                 return {
                     '總控': { early: null, middle: null, midLate: null, late: null },
                     '一線': { early: null, middle: null, midLate: null, late: null },
-                    '出納': { early: null, middle: null, midLate: null, late: null },
+                    '出納': { early: null, middle: null, midLate: null, late: null, special: null },
                     '外帶': { early: null, middle: null, midLate: null, late: null }
                 };
             }
@@ -810,6 +867,9 @@
                                 config.middle = taskCode;
                             } else if (firstCol.includes('晚')) {
                                 config.late = taskCode;
+                            } else if (sheetName === '出納') {
+                                // 出納：不含早/中/中下/晚 → 特殊班別代號
+                                config.special = taskCode;
                             }
                         }
                     }
@@ -823,7 +883,8 @@
                     early: config.early || null,
                     middle: config.middle || null,
                     midLate: config.midLate || null,
-                    late: config.late || null
+                    late: config.late || null,
+                    special: config.special || null
                 };
             }
 
@@ -1004,7 +1065,7 @@
                     // 從第二行開始（第一行是標題）
                     for (let rowIndex = 1; rowIndex < data.length; rowIndex++) {
                         const row = data[rowIndex];
-                        const employeeName = String(row[0] || '').trim();
+                        const employeeName = normalizeName(row[0] || '');
                         if (!employeeName) continue;
 
                         const employeeId = employeeMapping[employeeName] || employeeName;
@@ -1016,17 +1077,22 @@
                             if (isValidShiftTime(cellStr)) {
                                 const day = colIndex;
                                 const date = formatDate(year, month, day);
-                                const shiftType = getShiftType(cellStr, cutoffs);
 
                                 let taskCode;
-                                if (shiftType === 'early') {
-                                    taskCode = taskCodes.early;
-                                } else if (shiftType === 'middle') {
-                                    taskCode = taskCodes.middle;
-                                } else if (shiftType === 'midLate') {
-                                    taskCode = taskCodes.midLate;
-                                } else if (shiftType === 'late') {
-                                    taskCode = taskCodes.late;
+                                // 先判斷特殊班別（完全符合時間才觸發，僅出納有此設定）
+                                if (cutoffs.special !== null && parseInt(cellStr) === cutoffs.special) {
+                                    taskCode = taskCodes.special;
+                                } else {
+                                    const shiftType = getShiftType(cellStr, cutoffs);
+                                    if (shiftType === 'early') {
+                                        taskCode = taskCodes.early;
+                                    } else if (shiftType === 'middle') {
+                                        taskCode = taskCodes.middle;
+                                    } else if (shiftType === 'midLate') {
+                                        taskCode = taskCodes.midLate;
+                                    } else if (shiftType === 'late') {
+                                        taskCode = taskCodes.late;
+                                    }
                                 }
 
                                 // 如果找不到對應代碼，略過不轉換
@@ -1071,7 +1137,7 @@
                         // 處理每一天
                         for (let colIndex = 1; colIndex <= daysInMonth && colIndex < row.length; colIndex++) {
                             const cellValue = row[colIndex];
-                            const employeeName = String(cellValue).trim();
+                            const employeeName = normalizeName(cellValue);
 
                             if (employeeName) {
                                 const day = colIndex;
