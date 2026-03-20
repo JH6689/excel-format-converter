@@ -327,7 +327,7 @@ app.post('/api/download', (req, res) => {
 
         // 建立 Excel 工作表
         const wsData = [
-            ['日期', '工號', '任務代碼'], // 標題行
+            ['ScheduleDate', 'StaffID', 'BoardTaskID'], // 標題行
             ...data.map(row => [row.date, row.employeeId, row.taskCode])
         ];
 
