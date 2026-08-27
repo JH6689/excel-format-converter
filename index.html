@@ -794,6 +794,15 @@
             return String(name).replace(/[\r\n]/g, '').trim();
         }
 
+        // 工號補零：若不是 6 位數字，於前方補 0 補足 6 位
+        function normalizeStaffId(id) {
+            const trimmed = String(id).trim();
+            if (/^\d+$/.test(trimmed) && trimmed.length < 6) {
+                return trimmed.padStart(6, '0');
+            }
+            return trimmed;
+        }
+
         // 載入員工對照表
         async function loadEmployeeMapping(url) {
             const rows = await fetchGoogleSheet(url);
@@ -802,7 +811,7 @@
             const mapping = {};
             for (let i = 1; i < rows.length; i++) {
                 if (rows[i][0] && rows[i][1]) {
-                    mapping[normalizeName(rows[i][0])] = rows[i][1].trim();
+                    mapping[normalizeName(rows[i][0])] = normalizeStaffId(rows[i][1]);
                 }
             }
             return mapping;

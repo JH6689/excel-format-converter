@@ -95,6 +95,15 @@ function parseCsv(csvText) {
     return result;
 }
 
+// 工號補零：若不是 6 位數字，於前方補 0 補足 6 位
+function normalizeStaffId(id) {
+    const trimmed = String(id).trim();
+    if (/^\d+$/.test(trimmed) && trimmed.length < 6) {
+        return trimmed.padStart(6, '0');
+    }
+    return trimmed;
+}
+
 // 載入員工對照表
 async function loadEmployeeMapping(url) {
     try {
@@ -111,7 +120,7 @@ async function loadEmployeeMapping(url) {
         // 假設第一欄是姓名，第二欄是工號
         for (let i = 1; i < rows.length; i++) { // 跳過標題行
             if (rows[i][0] && rows[i][1]) {
-                mapping[rows[i][0].trim()] = rows[i][1].trim();
+                mapping[rows[i][0].trim()] = normalizeStaffId(rows[i][1]);
             }
         }
 
